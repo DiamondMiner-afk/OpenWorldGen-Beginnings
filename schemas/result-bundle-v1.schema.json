@@ -1,0 +1,65 @@
+{
+  "$defs": {
+    "MetricFiles": {
+      "properties": {
+        "csv": {
+          "type": "string"
+        },
+        "parquet": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "parquet",
+        "csv"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "comparison": {
+      "type": "string"
+    },
+    "event_audit": {
+      "type": "string"
+    },
+    "files": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "type": "object"
+    },
+    "journal_hashes": {
+      "type": "string"
+    },
+    "manifest": {
+      "type": "string"
+    },
+    "mechanisms": {
+      "type": "string"
+    },
+    "metrics": {
+      "$ref": "#/$defs/MetricFiles"
+    },
+    "package_version": {
+      "type": "string"
+    },
+    "report": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "package_version",
+    "manifest",
+    "metrics",
+    "comparison",
+    "mechanisms",
+    "journal_hashes",
+    "event_audit",
+    "report",
+    "files"
+  ],
+  "title": "ResultBundleContract",
+  "type": "object"
+}

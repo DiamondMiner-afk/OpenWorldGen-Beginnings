@@ -1,0 +1,5 @@
+* text=auto
+*.png binary
+*.pth binary
+*.docx binary
+*.parquet binary

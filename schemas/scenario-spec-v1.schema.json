@@ -1,0 +1,1308 @@
+{
+  "$defs": {
+    "AuthorityAppointment": {
+      "properties": {
+        "actor_id": {
+          "description": "A natural-person household actor bound to the engine population.",
+          "type": "string"
+        },
+        "end_month": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "office_id": {
+          "description": "A public-authority entity in the same jurisdiction as the actor.",
+          "type": "string"
+        },
+        "start_month": {
+          "description": "Inclusive start and exclusive end of this declared appointment.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "actor_id",
+        "office_id",
+        "start_month",
+        "end_month"
+      ],
+      "type": "object"
+    },
+    "CalendarSpec": {
+      "properties": {
+        "months": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "start_year": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "weeks_per_month": {
+          "default": 4,
+          "format": "uint8",
+          "maximum": 255,
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "start_year",
+        "months"
+      ],
+      "type": "object"
+    },
+    "ComputeProfile": {
+      "enum": [
+        "minimal",
+        "standard",
+        "custom"
+      ],
+      "type": "string"
+    },
+    "CreditContractSpec": {
+      "properties": {
+        "annual_interest_basis_points": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "borrower_id": {
+          "type": "string"
+        },
+        "first_payment_month": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "id": {
+          "type": "string"
+        },
+        "lender_id": {
+          "type": "string"
+        },
+        "maturity_month": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "missed_payment_limit": {
+          "format": "uint16",
+          "maximum": 65535,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "monthly_principal_basis_points": {
+          "description": "Percentage of outstanding principal due each month; maturity is a\nballoon for any remaining principal. Zero permits interest-only terms.",
+          "format": "uint16",
+          "maximum": 65535,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "origination_month": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "payment_priority": {
+          "description": "Lower numbers are serviced first; ties use contract ID, not file order.",
+          "format": "int32",
+          "type": "integer"
+        },
+        "principal": {
+          "$ref": "#/$defs/Money"
+        }
+      },
+      "required": [
+        "id",
+        "lender_id",
+        "borrower_id",
+        "principal",
+        "origination_month",
+        "first_payment_month",
+        "maturity_month",
+        "annual_interest_basis_points",
+        "monthly_principal_basis_points",
+        "missed_payment_limit",
+        "payment_priority"
+      ],
+      "type": "object"
+    },
+    "CreditLawBinding": {
+      "properties": {
+        "domain": {
+          "type": "string"
+        },
+        "governance_schema_version": {
+          "type": "string"
+        },
+        "law_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "governance_schema_version",
+        "law_id",
+        "domain"
+      ],
+      "type": "object"
+    },
+    "CreditMarketSpec": {
+      "properties": {
+        "contracts": {
+          "items": {
+            "$ref": "#/$defs/CreditContractSpec"
+          },
+          "type": "array"
+        },
+        "origination_law": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CreditLawBinding"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "schema_version": {
+          "type": "string"
+        },
+        "service_order": {
+          "$ref": "#/$defs/CreditServiceOrder"
+        }
+      },
+      "required": [
+        "schema_version",
+        "service_order",
+        "contracts"
+      ],
+      "type": "object"
+    },
+    "CreditServiceOrder": {
+      "enum": [
+        "before_legacy_debt",
+        "after_legacy_debt"
+      ],
+      "type": "string"
+    },
+    "DataBundleRef": {
+      "properties": {
+        "confidentiality": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "licence": {
+          "type": "string"
+        },
+        "retrieved_at": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "version",
+        "sha256",
+        "source",
+        "licence",
+        "retrieved_at",
+        "confidentiality"
+      ],
+      "type": "object"
+    },
+    "EconomicRole": {
+      "enum": [
+        "household",
+        "operating_firm",
+        "holding_company",
+        "conduit",
+        "public_authority"
+      ],
+      "type": "string"
+    },
+    "ExecutionMode": {
+      "enum": [
+        "reference",
+        "fast"
+      ],
+      "type": "string"
+    },
+    "GeographySpec": {
+      "properties": {
+        "currency": {
+          "type": "string"
+        },
+        "price_base_year": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "region_id": {
+          "type": "string"
+        },
+        "rest_of_world_id": {
+          "default": "ROW",
+          "type": "string"
+        }
+      },
+      "required": [
+        "region_id",
+        "currency",
+        "price_base_year"
+      ],
+      "type": "object"
+    },
+    "GovernanceChange": {
+      "oneOf": [
+        {
+          "description": "V2 envelope: a sponsoring group may petition, but this public office\nmust hold the domain's decision authority when the proposal is heard.",
+          "properties": {
+            "authority_id": {
+              "type": "string"
+            },
+            "change": {
+              "$ref": "#/$defs/GovernanceChange"
+            },
+            "type": {
+              "const": "authority_decision",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "authority_id",
+            "change"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "V3 envelope. The actor must hold a current appointment to this public\noffice in the scenario's institution graph, not merely name the gate.",
+          "properties": {
+            "actor_id": {
+              "type": "string"
+            },
+            "authority_id": {
+              "type": "string"
+            },
+            "change": {
+              "$ref": "#/$defs/GovernanceChange"
+            },
+            "type": {
+              "const": "actor_decision",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "actor_id",
+            "authority_id",
+            "change"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "action": {
+              "$ref": "#/$defs/PolicyActionKind"
+            },
+            "duration_months": {
+              "format": "uint32",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "law_id": {
+              "type": "string"
+            },
+            "type": {
+              "const": "economic_policy",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "law_id",
+            "duration_months",
+            "action"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            },
+            "law_id": {
+              "type": "string"
+            },
+            "resistance": {
+              "format": "double",
+              "type": "number"
+            },
+            "type": {
+              "const": "amend_law",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "law_id",
+            "enabled",
+            "resistance"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "amendment_surcharge": {
+              "format": "double",
+              "type": "number"
+            },
+            "gate_id": {
+              "type": "string"
+            },
+            "passage_threshold": {
+              "format": "double",
+              "type": "number"
+            },
+            "review_delay_months": {
+              "format": "uint32",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "type": {
+              "const": "amend_gate",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "gate_id",
+            "passage_threshold",
+            "amendment_surcharge",
+            "review_delay_months"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "group_id": {
+              "type": "string"
+            },
+            "type": {
+              "const": "change_influence",
+              "type": "string"
+            },
+            "weight": {
+              "format": "double",
+              "type": "number"
+            }
+          },
+          "required": [
+            "type",
+            "group_id",
+            "weight"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "Reassign one domain to another declared public office. The change is\nscreened by the *current* gate and authority, then takes effect later.",
+          "properties": {
+            "gate_id": {
+              "type": "string"
+            },
+            "new_authority_id": {
+              "type": "string"
+            },
+            "type": {
+              "const": "transfer_authority",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "gate_id",
+            "new_authority_id"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "GovernanceProposal": {
+      "properties": {
+        "change": {
+          "$ref": "#/$defs/GovernanceChange"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "sponsor_id": {
+          "type": "string"
+        },
+        "stances": {
+          "items": {
+            "$ref": "#/$defs/GroupStance"
+          },
+          "type": "array"
+        },
+        "submitted_month": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "submitted_month",
+        "domain",
+        "sponsor_id",
+        "stances",
+        "change"
+      ],
+      "type": "object"
+    },
+    "GovernanceSpec": {
+      "properties": {
+        "gates": {
+          "items": {
+            "$ref": "#/$defs/InstitutionalGate"
+          },
+          "type": "array"
+        },
+        "groups": {
+          "items": {
+            "$ref": "#/$defs/InfluenceGroup"
+          },
+          "type": "array"
+        },
+        "laws": {
+          "items": {
+            "$ref": "#/$defs/LawRule"
+          },
+          "type": "array"
+        },
+        "proposals": {
+          "items": {
+            "$ref": "#/$defs/GovernanceProposal"
+          },
+          "type": "array"
+        },
+        "schema_version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "groups",
+        "gates",
+        "laws",
+        "proposals"
+      ],
+      "type": "object"
+    },
+    "GroupStance": {
+      "properties": {
+        "group_id": {
+          "type": "string"
+        },
+        "value": {
+          "description": "-1 opposes, +1 supports, 0 is neutral.",
+          "format": "double",
+          "type": "number"
+        }
+      },
+      "required": [
+        "group_id",
+        "value"
+      ],
+      "type": "object"
+    },
+    "InfluenceGroup": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "weight": {
+          "description": "Relative political efficacy. No group type has a hard-coded advantage.",
+          "format": "double",
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "weight"
+      ],
+      "type": "object"
+    },
+    "InstitutionGraph": {
+      "properties": {
+        "authority_appointments": {
+          "items": {
+            "$ref": "#/$defs/AuthorityAppointment"
+          },
+          "type": "array"
+        },
+        "entities": {
+          "items": {
+            "$ref": "#/$defs/InstitutionalEntity"
+          },
+          "type": "array"
+        },
+        "schema_version": {
+          "type": "string"
+        },
+        "stakes": {
+          "items": {
+            "$ref": "#/$defs/OwnershipStake"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "schema_version",
+        "entities",
+        "stakes"
+      ],
+      "type": "object"
+    },
+    "InstitutionalEntity": {
+      "properties": {
+        "economic_role": {
+          "$ref": "#/$defs/EconomicRole"
+        },
+        "formed_month": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "id": {
+          "type": "string"
+        },
+        "jurisdiction": {
+          "description": "A jurisdiction identifier, not a claim that one national law applies.",
+          "type": "string"
+        },
+        "legal_form": {
+          "$ref": "#/$defs/LegalForm"
+        },
+        "tax_classification": {
+          "$ref": "#/$defs/TaxClassification"
+        }
+      },
+      "required": [
+        "id",
+        "legal_form",
+        "tax_classification",
+        "economic_role",
+        "jurisdiction",
+        "formed_month"
+      ],
+      "type": "object"
+    },
+    "InstitutionalGate": {
+      "properties": {
+        "amendment_surcharge": {
+          "description": "Additional resistance when altering a law or the gate itself.",
+          "format": "double",
+          "type": "number"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "passage_threshold": {
+          "format": "double",
+          "type": "number"
+        },
+        "review_delay_months": {
+          "description": "An accepted change cannot take effect until the next month at earliest.",
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "domain",
+        "passage_threshold",
+        "amendment_surcharge",
+        "review_delay_months"
+      ],
+      "type": "object"
+    },
+    "LawRule": {
+      "properties": {
+        "domain": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        },
+        "id": {
+          "type": "string"
+        },
+        "resistance": {
+          "description": "Extra barrier to policy enactment or alteration of this rule.",
+          "format": "double",
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "domain",
+        "enabled",
+        "resistance"
+      ],
+      "type": "object"
+    },
+    "LegalForm": {
+      "enum": [
+        "natural_person",
+        "corporation",
+        "limited_liability_company",
+        "partnership",
+        "trust",
+        "cooperative",
+        "government_body"
+      ],
+      "type": "string"
+    },
+    "MetricName": {
+      "enum": [
+        "cpi",
+        "inflation_year_over_year",
+        "real_gdp",
+        "nominal_gdp",
+        "income_accounts",
+        "institutional_balances",
+        "output_gap",
+        "unemployment",
+        "average_wage",
+        "consumption_deciles",
+        "gini",
+        "poverty_share",
+        "inventories",
+        "firm_defaults",
+        "household_defaults",
+        "bank_resolutions",
+        "credit",
+        "fiscal_balance",
+        "government_debt",
+        "imports"
+      ],
+      "type": "string"
+    },
+    "MetricSpec": {
+      "properties": {
+        "names": {
+          "items": {
+            "$ref": "#/$defs/MetricName"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "names"
+      ],
+      "type": "object"
+    },
+    "ModelPackRef": {
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "validation_status": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "version",
+        "sha256",
+        "validation_status"
+      ],
+      "type": "object"
+    },
+    "Money": {
+      "description": "Fixed-point monetary amount in the scenario currency's minor unit.",
+      "format": "int64",
+      "type": "integer"
+    },
+    "OwnershipStake": {
+      "properties": {
+        "basis_points": {
+          "description": "A 100% direct interest is 10,000 basis points.",
+          "format": "uint16",
+          "maximum": 65535,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "owned_id": {
+          "type": "string"
+        },
+        "owner_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "owner_id",
+        "owned_id",
+        "basis_points"
+      ],
+      "type": "object"
+    },
+    "PolicyActionKind": {
+      "oneOf": [
+        {
+          "properties": {
+            "basis_points": {
+              "format": "int32",
+              "type": "integer"
+            },
+            "type": {
+              "const": "policy_rate_delta",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "basis_points"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "amount_per_household": {
+              "$ref": "#/$defs/Money"
+            },
+            "bottom_share": {
+              "format": "double",
+              "type": "number"
+            },
+            "type": {
+              "const": "targeted_transfer",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "amount_per_household",
+            "bottom_share"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "basis_points": {
+              "format": "int32",
+              "type": "integer"
+            },
+            "sector": {
+              "$ref": "#/$defs/Sector"
+            },
+            "type": {
+              "const": "indirect_tax_delta",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "sector",
+            "basis_points"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "energy_intensity_reduction": {
+              "format": "double",
+              "type": "number"
+            },
+            "monthly_amount": {
+              "$ref": "#/$defs/Money"
+            },
+            "type": {
+              "const": "public_investment",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "monthly_amount",
+            "energy_intensity_reduction"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "PolicyActionSpec": {
+      "oneOf": [
+        {
+          "properties": {
+            "basis_points": {
+              "format": "int32",
+              "type": "integer"
+            },
+            "type": {
+              "const": "policy_rate_delta",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "basis_points"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "amount_per_household": {
+              "$ref": "#/$defs/Money"
+            },
+            "bottom_share": {
+              "format": "double",
+              "type": "number"
+            },
+            "type": {
+              "const": "targeted_transfer",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "amount_per_household",
+            "bottom_share"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "basis_points": {
+              "format": "int32",
+              "type": "integer"
+            },
+            "sector": {
+              "$ref": "#/$defs/Sector"
+            },
+            "type": {
+              "const": "indirect_tax_delta",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "sector",
+            "basis_points"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "energy_intensity_reduction": {
+              "format": "double",
+              "type": "number"
+            },
+            "monthly_amount": {
+              "$ref": "#/$defs/Money"
+            },
+            "type": {
+              "const": "public_investment",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "monthly_amount",
+            "energy_intensity_reduction"
+          ],
+          "type": "object"
+        }
+      ],
+      "properties": {
+        "duration_months": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "id": {
+          "type": "string"
+        },
+        "start_month": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "start_month",
+        "duration_months"
+      ],
+      "type": "object"
+    },
+    "PolicyBranch": {
+      "properties": {
+        "actions": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/PolicyActionSpec"
+          },
+          "type": "array"
+        },
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "label"
+      ],
+      "type": "object"
+    },
+    "PopulationSpec": {
+      "properties": {
+        "banks": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "firms": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "household_weight": {
+          "default": 1.0,
+          "format": "double",
+          "type": "number"
+        },
+        "households": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "households",
+        "firms",
+        "banks"
+      ],
+      "type": "object"
+    },
+    "ReplicationSpec": {
+      "properties": {
+        "confidence_level": {
+          "format": "double",
+          "type": "number"
+        },
+        "maximum": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "minimum": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "relative_half_width_target": {
+          "format": "double",
+          "type": "number"
+        }
+      },
+      "required": [
+        "minimum",
+        "maximum",
+        "confidence_level",
+        "relative_half_width_target"
+      ],
+      "type": "object"
+    },
+    "Sector": {
+      "enum": [
+        "energy",
+        "food",
+        "manufacturing",
+        "services"
+      ],
+      "type": "string"
+    },
+    "ShockSpec": {
+      "oneOf": [
+        {
+          "properties": {
+            "multiplier": {
+              "format": "double",
+              "type": "number"
+            },
+            "sector": {
+              "$ref": "#/$defs/Sector"
+            },
+            "type": {
+              "const": "import_price",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "sector",
+            "multiplier"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "multiplier": {
+              "format": "double",
+              "type": "number"
+            },
+            "sector": {
+              "$ref": "#/$defs/Sector"
+            },
+            "type": {
+              "const": "productivity",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "sector",
+            "multiplier"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "multiplier": {
+              "format": "double",
+              "type": "number"
+            },
+            "sector": {
+              "$ref": "#/$defs/Sector"
+            },
+            "type": {
+              "const": "supply_capacity",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "sector",
+            "multiplier"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "multiplier": {
+              "format": "double",
+              "type": "number"
+            },
+            "type": {
+              "const": "confidence",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "multiplier"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "spread_basis_points": {
+              "format": "int32",
+              "type": "integer"
+            },
+            "type": {
+              "const": "credit_conditions",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "spread_basis_points"
+          ],
+          "type": "object"
+        }
+      ],
+      "properties": {
+        "decay_months": {
+          "default": 0,
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "duration_months": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "id": {
+          "type": "string"
+        },
+        "start_month": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "start_month",
+        "duration_months"
+      ],
+      "type": "object"
+    },
+    "TaxClassification": {
+      "enum": [
+        "unknown",
+        "individual",
+        "corporation",
+        "pass_through",
+        "disregarded",
+        "exempt"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "calendar": {
+      "$ref": "#/$defs/CalendarSpec"
+    },
+    "compute_profile": {
+      "$ref": "#/$defs/ComputeProfile"
+    },
+    "credit_market": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CreditMarketSpec"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Opt-in, scenario-bound bank/customer credit contracts and service order."
+    },
+    "data_bundle": {
+      "$ref": "#/$defs/DataBundleRef"
+    },
+    "execution_mode": {
+      "$ref": "#/$defs/ExecutionMode"
+    },
+    "geography": {
+      "$ref": "#/$defs/GeographySpec"
+    },
+    "governance": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/GovernanceSpec"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Optional political-process experiment. Legacy policy branches remain\nexogenous interventions and are not screened by this process."
+    },
+    "initial_institutions": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/InstitutionGraph"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "description": "Optional, fully specified initial ownership. This changes the\ninstitution graph, not initial cash or the absence of equity flows."
+    },
+    "metrics": {
+      "$ref": "#/$defs/MetricSpec"
+    },
+    "model_pack": {
+      "$ref": "#/$defs/ModelPackRef"
+    },
+    "policy_branches": {
+      "items": {
+        "$ref": "#/$defs/PolicyBranch"
+      },
+      "type": "array"
+    },
+    "population": {
+      "$ref": "#/$defs/PopulationSpec"
+    },
+    "replications": {
+      "$ref": "#/$defs/ReplicationSpec"
+    },
+    "root_seed": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "scenario_id": {
+      "type": "string"
+    },
+    "schema_version": {
+      "type": "string"
+    },
+    "shocks": {
+      "items": {
+        "$ref": "#/$defs/ShockSpec"
+      },
+      "type": "array"
+    },
+    "title": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "scenario_id",
+    "title",
+    "model_pack",
+    "data_bundle",
+    "calendar",
+    "geography",
+    "population",
+    "root_seed",
+    "compute_profile",
+    "execution_mode",
+    "shocks",
+    "policy_branches",
+    "replications",
+    "metrics"
+  ],
+  "title": "ScenarioSpec",
+  "type": "object"
+}

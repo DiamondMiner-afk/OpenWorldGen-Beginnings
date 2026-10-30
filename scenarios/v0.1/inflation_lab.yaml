@@ -1,0 +1,127 @@
+schema_version: owg.scenario.v1
+scenario_id: inflation-lab-v0.1
+title: Imported energy inflation policy laboratory
+model_pack:
+  id: owg-small-open-economy
+  version: 0.1.0
+  sha256: b157d5a578e289fcf216dcb7e551e597b10a4f1d4825ee5e095175aa411ab482
+  validation_status: development
+data_bundle:
+  id: owg-synthetic-balanced
+  version: 0.1.0
+  sha256: fecb688f45e18c1c10fcd2418247b0f72e0d754134e332399347b8350a420d35
+  source: OpenWorldGen preregistered synthetic generator
+  licence: internal-research
+  retrieved_at: not-applicable
+  confidentiality: public-synthetic
+calendar:
+  start_year: 2020
+  months: 120
+  weeks_per_month: 4
+geography:
+  region_id: SYNTHETICA
+  currency: OWG
+  price_base_year: 2020
+  rest_of_world_id: ROW
+population:
+  households: 1000
+  firms: 100
+  banks: 2
+  household_weight: 1.0
+root_seed: 20260724
+compute_profile: minimal
+execution_mode: reference
+shocks:
+- id: imported-energy-price
+  start_month: 24
+  duration_months: 12
+  decay_months: 12
+  type: import_price
+  sector: energy
+  multiplier: 1.3
+policy_branches:
+- id: baseline
+  label: Baseline reaction rule
+  actions: []
+- id: monetary-tightening
+  label: Temporary 100 basis point tightening
+  actions:
+  - id: tighten-100bp
+    start_month: 24
+    duration_months: 12
+    type: policy_rate_delta
+    basis_points: 100
+- id: targeted-transfers
+  label: Transfers to bottom 40 percent
+  actions:
+  - id: bottom-40-transfer
+    start_month: 24
+    duration_months: 12
+    type: targeted_transfer
+    amount_per_household: 2500
+    bottom_share: 0.4
+- id: essential-tax-cut
+  label: Temporary essential energy tax reduction
+  actions:
+  - id: energy-tax-minus-500bp
+    start_month: 24
+    duration_months: 12
+    type: indirect_tax_delta
+    sector: energy
+    basis_points: -500
+- id: public-investment
+  label: Energy-efficiency public investment
+  actions:
+  - id: energy-efficiency-investment
+    start_month: 24
+    duration_months: 24
+    type: public_investment
+    monthly_amount: 250000
+    energy_intensity_reduction: 0.005
+- id: combined
+  label: Targeted transfer plus tightening and investment
+  actions:
+  - id: combined-tighten
+    start_month: 24
+    duration_months: 9
+    type: policy_rate_delta
+    basis_points: 75
+  - id: combined-transfer
+    start_month: 24
+    duration_months: 9
+    type: targeted_transfer
+    amount_per_household: 1500
+    bottom_share: 0.4
+  - id: combined-investment
+    start_month: 24
+    duration_months: 24
+    type: public_investment
+    monthly_amount: 150000
+    energy_intensity_reduction: 0.003
+replications:
+  minimum: 8
+  maximum: 64
+  confidence_level: 0.9
+  relative_half_width_target: 0.05
+metrics:
+  names:
+  - cpi
+  - inflation_year_over_year
+  - real_gdp
+  - nominal_gdp
+  - income_accounts
+  - institutional_balances
+  - output_gap
+  - unemployment
+  - average_wage
+  - consumption_deciles
+  - gini
+  - poverty_share
+  - inventories
+  - firm_defaults
+  - household_defaults
+  - bank_resolutions
+  - credit
+  - fiscal_balance
+  - government_debt
+  - imports

@@ -1,0 +1,169 @@
+{
+  "$defs": {
+    "AgentArchetype": {
+      "properties": {
+        "action_schema": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "observation_schema": {
+          "type": "string"
+        },
+        "policy_id": {
+          "type": "string"
+        },
+        "state_schema": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "policy_id",
+        "state_schema",
+        "observation_schema",
+        "action_schema"
+      ],
+      "type": "object"
+    },
+    "MarketDefinition": {
+      "properties": {
+        "clearing_rule": {
+          "type": "string"
+        },
+        "commodity": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "settlement_schedule": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "commodity",
+        "clearing_rule",
+        "settlement_schedule"
+      ],
+      "type": "object"
+    },
+    "PosteriorReference": {
+      "properties": {
+        "artifact_path": {
+          "type": "string"
+        },
+        "draws": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "method": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "artifact_path",
+        "sha256",
+        "draws",
+        "method"
+      ],
+      "type": "object"
+    },
+    "ScheduleDefinition": {
+      "properties": {
+        "cadence": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "phase_order": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "cadence",
+        "phase_order"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "accounting_rules": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "agent_archetypes": {
+      "items": {
+        "$ref": "#/$defs/AgentArchetype"
+      },
+      "type": "array"
+    },
+    "calibrated_posterior": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/PosteriorReference"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "id": {
+      "type": "string"
+    },
+    "markets": {
+      "items": {
+        "$ref": "#/$defs/MarketDefinition"
+      },
+      "type": "array"
+    },
+    "parameters": {
+      "additionalProperties": {
+        "format": "double",
+        "type": "number"
+      },
+      "type": "object"
+    },
+    "schedules": {
+      "items": {
+        "$ref": "#/$defs/ScheduleDefinition"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "type": "string"
+    },
+    "validation_status": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "version",
+    "agent_archetypes",
+    "markets",
+    "accounting_rules",
+    "schedules",
+    "parameters",
+    "validation_status"
+  ],
+  "title": "ModelPack",
+  "type": "object"
+}

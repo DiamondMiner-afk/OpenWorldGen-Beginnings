@@ -1,0 +1,31 @@
+[package]
+name = "owg-cli"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+publish = false
+
+[[bin]]
+name = "owg"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+arrow-array.workspace = true
+arrow-schema.workspace = true
+clap.workspace = true
+chrono.workspace = true
+csv.workspace = true
+hex.workspace = true
+owg-core = { path = "../owg-core", version = "0.1.0" }
+parquet.workspace = true
+schemars.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+serde_yaml_ng.workspace = true
+sha2.workspace = true
+
+[lints]
+workspace = true

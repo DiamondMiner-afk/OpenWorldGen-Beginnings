@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "agent_archetypes": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "capabilities_version": {
+      "type": "string"
+    },
+    "checkpoint_version": {
+      "type": "string"
+    },
+    "cli_commands": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "compute_profiles": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "engine_version": {
+      "type": "string"
+    },
+    "execution_modes": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "gated_systems": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "gpu_required": {
+      "type": "boolean"
+    },
+    "implemented_systems": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "markets": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "network_required": {
+      "type": "boolean"
+    },
+    "policy_kinds": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "python_sdk_methods": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "result_bundle_version": {
+      "type": "string"
+    },
+    "result_formats": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "scenario_contract_version": {
+      "type": "string"
+    },
+    "scheduler_version": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "capabilities_version",
+    "engine_version",
+    "scenario_contract_version",
+    "checkpoint_version",
+    "result_bundle_version",
+    "scheduler_version",
+    "gpu_required",
+    "network_required",
+    "execution_modes",
+    "compute_profiles",
+    "agent_archetypes",
+    "markets",
+    "policy_kinds",
+    "result_formats",
+    "cli_commands",
+    "python_sdk_methods",
+    "implemented_systems",
+    "gated_systems"
+  ],
+  "title": "EngineCapabilities",
+  "type": "object"
+}

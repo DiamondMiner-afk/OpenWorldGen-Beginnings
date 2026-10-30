@@ -1,0 +1,1488 @@
+{
+  "$defs": {
+    "AccountKey": {
+      "properties": {
+        "kind": {
+          "$ref": "#/$defs/AccountKind"
+        },
+        "owner_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "owner_id",
+        "kind"
+      ],
+      "type": "object"
+    },
+    "AccountKind": {
+      "enum": [
+        "deposit",
+        "deposit_liability",
+        "cash",
+        "reserve",
+        "reserve_liability",
+        "loan_asset",
+        "debt_liability",
+        "government_debt_asset",
+        "government_debt_liability",
+        "bank_equity_asset",
+        "treasury",
+        "tax_receivable",
+        "equity",
+        "opening_residual"
+      ],
+      "type": "string"
+    },
+    "BalanceRecord": {
+      "properties": {
+        "account": {
+          "$ref": "#/$defs/AccountKey"
+        },
+        "balance": {
+          "$ref": "#/$defs/Money"
+        }
+      },
+      "required": [
+        "account",
+        "balance"
+      ],
+      "type": "object"
+    },
+    "Banks": {
+      "properties": {
+        "approval_threshold": {
+          "items": {
+            "format": "double",
+            "type": "number"
+          },
+          "type": "array"
+        },
+        "expected_loss_rate": {
+          "items": {
+            "format": "double",
+            "type": "number"
+          },
+          "type": "array"
+        },
+        "ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "lending_spread": {
+          "items": {
+            "format": "double",
+            "type": "number"
+          },
+          "type": "array"
+        },
+        "minimum_capital_ratio": {
+          "items": {
+            "format": "double",
+            "type": "number"
+          },
+          "type": "array"
+        },
+        "minimum_liquidity_ratio": {
+          "items": {
+            "format": "double",
+            "type": "number"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "ids",
+        "lending_spread",
+        "approval_threshold",
+        "expected_loss_rate",
+        "minimum_capital_ratio",
+        "minimum_liquidity_ratio"
+      ],
+      "type": "object"
+    },
+    "EconomicParameters": {
+      "properties": {
+        "bank_minimum_capital_ratio": {
+          "format": "double",
+          "type": "number"
+        },
+        "bank_minimum_liquidity_ratio": {
+          "format": "double",
+          "type": "number"
+        },
+        "baseline_policy_rate": {
+          "format": "double",
+          "type": "number"
+        },
+        "firm_entry_monthly_probability_after_wait": {
+          "format": "double",
+          "type": "number"
+        },
+        "firm_entry_wait_months": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "household_credit_income_multiple": {
+          "format": "double",
+          "type": "number"
+        },
+        "household_credit_minimum_limit": {
+          "format": "double",
+          "type": "number"
+        },
+        "household_credit_spread": {
+          "format": "double",
+          "type": "number"
+        },
+        "household_debt_monthly_principal_rate": {
+          "format": "double",
+          "type": "number"
+        },
+        "income_tax_rate": {
+          "format": "double",
+          "type": "number"
+        },
+        "monthly_government_procurement": {
+          "$ref": "#/$defs/Money"
+        },
+        "monthly_unemployment_benefit": {
+          "$ref": "#/$defs/Money"
+        },
+        "sector": {
+          "$ref": "#/$defs/SectorParameters"
+        },
+        "weekly_energy_subsistence_floor": {
+          "format": "double",
+          "type": "number"
+        },
+        "weekly_food_subsistence_floor": {
+          "format": "double",
+          "type": "number"
+        }
+      },
+      "required": [
+        "baseline_policy_rate",
+        "income_tax_rate",
+        "monthly_unemployment_benefit",
+        "monthly_government_procurement",
+        "firm_entry_monthly_probability_after_wait",
+        "firm_entry_wait_months",
+        "household_credit_income_multiple",
+        "household_credit_minimum_limit",
+        "household_debt_monthly_principal_rate",
+        "household_credit_spread",
+        "weekly_energy_subsistence_floor",
+        "weekly_food_subsistence_floor",
+        "bank_minimum_capital_ratio",
+        "bank_minimum_liquidity_ratio",
+        "sector"
+      ],
+      "type": "object"
+    },
+    "Economy": {
+      "properties": {
+        "banks": {
+          "$ref": "#/$defs/Banks"
+        },
+        "base_indirect_tax": {
+          "items": {
+            "format": "double",
+            "type": "number"
+          },
+          "maxItems": 4,
+          "minItems": 4,
+          "type": "array"
+        },
+        "base_policy_rate": {
+          "format": "double",
+          "type": "number"
+        },
+        "base_sector_prices": {
+          "items": {
+            "format": "double",
+            "type": "number"
+          },
+          "maxItems": 4,
+          "minItems": 4,
+          "type": "array"
+        },
+        "cpi_history": {
+          "items": {
+            "format": "double",
+            "type": "number"
+          },
+          "type": "array"
+        },
+        "credit_spread_shock": {
+          "format": "double",
+          "type": "number"
+        },
+        "effective_policy_rate": {
+          "format": "double",
+          "type": "number"
+        },
+        "energy_efficiency_multiplier": {
+          "format": "double",
+          "type": "number"
+        },
+        "firms": {
+          "$ref": "#/$defs/Firms"
+        },
+        "households": {
+          "$ref": "#/$defs/Households"
+        },
+        "journal_sequence": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "last_inflation": {
+          "format": "double",
+          "type": "number"
+        },
+        "last_unemployment": {
+          "format": "double",
+          "type": "number"
+        },
+        "ledger": {
+          "$ref": "#/$defs/Ledger"
+        },
+        "month": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "parameters": {
+          "$ref": "#/$defs/EconomicParameters"
+        },
+        "potential_gdp": {
+          "format": "double",
+          "type": "number"
+        },
+        "replication": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "root_seed": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "schedule_audit": {
+          "$ref": "#/$defs/ScheduleAudit",
+          "default": {
+            "event_count": 0,
+            "events_by_kind": {},
+            "events_by_month": {},
+            "first_event_id": null,
+            "last_event": null,
+            "last_event_id": null,
+            "rolling_hash": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        }
+      },
+      "required": [
+        "ledger",
+        "households",
+        "firms",
+        "banks",
+        "parameters",
+        "month",
+        "replication",
+        "root_seed",
+        "base_policy_rate",
+        "effective_policy_rate",
+        "credit_spread_shock",
+        "base_indirect_tax",
+        "energy_efficiency_multiplier",
+        "cpi_history",
+        "last_inflation",
+        "last_unemployment",
+        "potential_gdp",
+        "base_sector_prices",
+        "journal_sequence"
+      ],
+      "type": "object"
+    },
+    "Firms": {
+      "properties": {
+        "active": {
+          "items": {
+            "type": "boolean"
+          },
+          "type": "array"
+        },
+        "bank_index": {
+          "items": {
+            "format": "uint",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "array"
+        },
+        "capacity": {
+          "items": {
+            "format": "double",
+            "type": "number"
+          },
+          "type": "array"
+        },
+        "default_streak": {
+          "items": {
+            "format": "uint16",
+            "maximum": 65535,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "array"
+        },
+        "energy_intensity": {
+          "items": {
+            "format": "double",
+            "type": "number"
+          },
+          "type": "array"
+        },
+        "expected_demand": {
+          "items": {
+            "format": "double",
+            "type": "number"
+          },
+          "type": "array"
+        },
+        "ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "inactive_months": {
+          "items": {
+            "format": "uint16",
+            "maximum": 65535,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "array"
+        },
+        "inventory": {
+          "items": {
+            "format": "double",
+            "type": "number"
+          },
+          "type": "array"
+        },
+        "last_sales_units": {
+          "items": {
+            "format": "double",
+            "type": "number"
+          },
+          "type": "array"
+        },
+        "last_sales_value": {
+          "items": {
+            "format": "double",
+            "type": "number"
+          },
+          "type": "array"
+        },
+        "markup": {
+          "items": {
+            "format": "double",
+            "type": "number"
+          },
+          "type": "array"
+        },
+        "price": {
+          "items": {
+            "$ref": "#/$defs/Money"
+          },
+          "type": "array"
+        },
+        "productivity": {
+          "items": {
+            "format": "double",
+            "type": "number"
+          },
+          "type": "array"
+        },
+        "sector": {
+          "items": {
+            "$ref": "#/$defs/Sector"
+          },
+          "type": "array"
+        },
+        "wage_offer": {
+          "items": {
+            "$ref": "#/$defs/Money"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "ids",
+        "sector",
+        "bank_index",
+        "productivity",
+        "capacity",
+        "inventory",
+        "price",
+        "wage_offer",
+        "expected_demand",
+        "last_sales_units",
+        "last_sales_value",
+        "markup",
+        "energy_intensity",
+        "active",
+        "default_streak",
+        "inactive_months"
+      ],
+      "type": "object"
+    },
+    "Households": {
+      "properties": {
+        "bank_index": {
+          "items": {
+            "format": "uint",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "array"
+        },
+        "consumption_propensity": {
+          "items": {
+            "format": "double",
+            "type": "number"
+          },
+          "type": "array"
+        },
+        "delinquent_months": {
+          "items": {
+            "format": "uint16",
+            "maximum": 65535,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "array"
+        },
+        "employer": {
+          "items": {
+            "format": "uint",
+            "minimum": 0,
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "type": "array"
+        },
+        "expected_inflation": {
+          "items": {
+            "format": "double",
+            "type": "number"
+          },
+          "type": "array"
+        },
+        "habit_consumption": {
+          "items": {
+            "format": "double",
+            "type": "number"
+          },
+          "type": "array"
+        },
+        "habit_strength": {
+          "items": {
+            "format": "double",
+            "type": "number"
+          },
+          "type": "array"
+        },
+        "ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "information_access": {
+          "items": {
+            "format": "double",
+            "type": "number"
+          },
+          "type": "array"
+        },
+        "last_consumption": {
+          "items": {
+            "format": "double",
+            "type": "number"
+          },
+          "type": "array"
+        },
+        "monthly_income": {
+          "items": {
+            "format": "double",
+            "type": "number"
+          },
+          "type": "array"
+        },
+        "risk_aversion": {
+          "items": {
+            "format": "double",
+            "type": "number"
+          },
+          "type": "array"
+        },
+        "skill": {
+          "items": {
+            "format": "double",
+            "type": "number"
+          },
+          "type": "array"
+        },
+        "trust": {
+          "items": {
+            "format": "double",
+            "type": "number"
+          },
+          "type": "array"
+        },
+        "weights": {
+          "items": {
+            "format": "double",
+            "type": "number"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "ids",
+        "weights",
+        "bank_index",
+        "employer",
+        "skill",
+        "consumption_propensity",
+        "habit_strength",
+        "risk_aversion",
+        "information_access",
+        "trust",
+        "expected_inflation",
+        "habit_consumption",
+        "last_consumption",
+        "monthly_income",
+        "delinquent_months"
+      ],
+      "type": "object"
+    },
+    "IncomeAccounts": {
+      "properties": {
+        "compensation_of_employees": {
+          "format": "double",
+          "type": "number"
+        },
+        "gross_operating_surplus": {
+          "format": "double",
+          "type": "number"
+        },
+        "gross_value_added": {
+          "format": "double",
+          "type": "number"
+        },
+        "identity_relative_error": {
+          "format": "double",
+          "type": "number"
+        },
+        "nominal_gdp_income": {
+          "format": "double",
+          "type": "number"
+        },
+        "taxes_on_products": {
+          "format": "double",
+          "type": "number"
+        }
+      },
+      "required": [
+        "gross_value_added",
+        "compensation_of_employees",
+        "gross_operating_surplus",
+        "taxes_on_products",
+        "nominal_gdp_income",
+        "identity_relative_error"
+      ],
+      "type": "object"
+    },
+    "InstitutionalBalances": {
+      "properties": {
+        "banks": {
+          "$ref": "#/$defs/Money"
+        },
+        "central_bank": {
+          "$ref": "#/$defs/Money"
+        },
+        "firms": {
+          "$ref": "#/$defs/Money"
+        },
+        "government": {
+          "$ref": "#/$defs/Money"
+        },
+        "households": {
+          "$ref": "#/$defs/Money"
+        },
+        "ownership_sector": {
+          "$ref": "#/$defs/Money"
+        },
+        "residual": {
+          "$ref": "#/$defs/Money"
+        },
+        "rest_of_world": {
+          "$ref": "#/$defs/Money"
+        },
+        "unclassified": {
+          "$ref": "#/$defs/Money"
+        }
+      },
+      "required": [
+        "households",
+        "firms",
+        "banks",
+        "government",
+        "central_bank",
+        "rest_of_world",
+        "ownership_sector",
+        "unclassified",
+        "residual"
+      ],
+      "type": "object"
+    },
+    "Ledger": {
+      "properties": {
+        "audit": {
+          "$ref": "#/$defs/LedgerAudit"
+        },
+        "balances": {
+          "items": {
+            "$ref": "#/$defs/BalanceRecord"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "balances",
+        "audit"
+      ],
+      "type": "object"
+    },
+    "LedgerAudit": {
+      "properties": {
+        "entries_by_month": {
+          "additionalProperties": false,
+          "patternProperties": {
+            "^\\d+$": {
+              "format": "uint64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        },
+        "entries_by_phase": {
+          "additionalProperties": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "object"
+        },
+        "entry_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "first_entry_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "last_entry_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "posting_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "rolling_hash": {
+          "items": {
+            "format": "uint8",
+            "maximum": 255,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "maxItems": 32,
+          "minItems": 32,
+          "type": "array"
+        }
+      },
+      "required": [
+        "rolling_hash",
+        "entry_count",
+        "posting_count",
+        "entries_by_phase",
+        "entries_by_month"
+      ],
+      "type": "object"
+    },
+    "MetricRow": {
+      "properties": {
+        "accounting_identity_relative_error": {
+          "format": "double",
+          "type": "number"
+        },
+        "active_firms": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "average_wage": {
+          "format": "double",
+          "type": "number"
+        },
+        "bank_resolutions": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "branch_id": {
+          "type": "string"
+        },
+        "consumption_deciles": {
+          "items": {
+            "format": "double",
+            "type": "number"
+          },
+          "maxItems": 10,
+          "minItems": 10,
+          "type": "array"
+        },
+        "consumption_total": {
+          "format": "double",
+          "type": "number"
+        },
+        "cpi": {
+          "format": "double",
+          "type": "number"
+        },
+        "cpi_energy": {
+          "format": "double",
+          "type": "number"
+        },
+        "cpi_food": {
+          "format": "double",
+          "type": "number"
+        },
+        "cpi_manufacturing": {
+          "format": "double",
+          "type": "number"
+        },
+        "cpi_services": {
+          "format": "double",
+          "type": "number"
+        },
+        "credit": {
+          "format": "double",
+          "type": "number"
+        },
+        "firm_defaults": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "firm_entries": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "fiscal_balance": {
+          "format": "double",
+          "type": "number"
+        },
+        "gini": {
+          "format": "double",
+          "type": "number"
+        },
+        "government_debt": {
+          "format": "double",
+          "type": "number"
+        },
+        "household_defaults": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "imports": {
+          "format": "double",
+          "type": "number"
+        },
+        "income_accounts": {
+          "$ref": "#/$defs/IncomeAccounts",
+          "default": {
+            "compensation_of_employees": 0.0,
+            "gross_operating_surplus": 0.0,
+            "gross_value_added": 0.0,
+            "identity_relative_error": 0.0,
+            "nominal_gdp_income": 0.0,
+            "taxes_on_products": 0.0
+          }
+        },
+        "inflation_year_over_year": {
+          "format": "double",
+          "type": "number"
+        },
+        "institutional_balances": {
+          "$ref": "#/$defs/InstitutionalBalances",
+          "default": {
+            "banks": 0,
+            "central_bank": 0,
+            "firms": 0,
+            "government": 0,
+            "households": 0,
+            "ownership_sector": 0,
+            "residual": 0,
+            "rest_of_world": 0,
+            "unclassified": 0
+          }
+        },
+        "inventories": {
+          "format": "double",
+          "type": "number"
+        },
+        "ledger_residual_minor_units": {
+          "format": "int64",
+          "type": "integer"
+        },
+        "month": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "month_of_year": {
+          "format": "uint8",
+          "maximum": 255,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "nominal_gdp": {
+          "format": "double",
+          "type": "number"
+        },
+        "output_gap": {
+          "format": "double",
+          "type": "number"
+        },
+        "policy_rate": {
+          "format": "double",
+          "type": "number"
+        },
+        "poverty_share": {
+          "format": "double",
+          "type": "number"
+        },
+        "real_gdp": {
+          "format": "double",
+          "type": "number"
+        },
+        "replication": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "scenario_id": {
+          "type": "string"
+        },
+        "unemployment": {
+          "format": "double",
+          "type": "number"
+        },
+        "year": {
+          "format": "int32",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "scenario_id",
+        "branch_id",
+        "replication",
+        "month",
+        "year",
+        "month_of_year",
+        "cpi",
+        "cpi_energy",
+        "cpi_food",
+        "cpi_manufacturing",
+        "cpi_services",
+        "inflation_year_over_year",
+        "real_gdp",
+        "nominal_gdp",
+        "output_gap",
+        "unemployment",
+        "average_wage",
+        "consumption_total",
+        "consumption_deciles",
+        "gini",
+        "poverty_share",
+        "inventories",
+        "firm_defaults",
+        "firm_entries",
+        "household_defaults",
+        "bank_resolutions",
+        "active_firms",
+        "credit",
+        "fiscal_balance",
+        "government_debt",
+        "imports",
+        "policy_rate",
+        "ledger_residual_minor_units",
+        "accounting_identity_relative_error"
+      ],
+      "type": "object"
+    },
+    "Money": {
+      "description": "Fixed-point monetary amount in the scenario currency's minor unit.",
+      "format": "int64",
+      "type": "integer"
+    },
+    "ScheduleAudit": {
+      "properties": {
+        "event_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "events_by_kind": {
+          "additionalProperties": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "object"
+        },
+        "events_by_month": {
+          "additionalProperties": false,
+          "patternProperties": {
+            "^\\d+$": {
+              "format": "uint64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        },
+        "first_event_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "last_event": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ScheduledEvent"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "last_event_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "rolling_hash": {
+          "items": {
+            "format": "uint8",
+            "maximum": 255,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "maxItems": 32,
+          "minItems": 32,
+          "type": "array"
+        }
+      },
+      "required": [
+        "rolling_hash",
+        "event_count",
+        "events_by_kind",
+        "events_by_month"
+      ],
+      "type": "object"
+    },
+    "ScheduledEvent": {
+      "properties": {
+        "actor_id": {
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/SimulationEventKind"
+        },
+        "month": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "phase": {
+          "$ref": "#/$defs/SimulationPhase"
+        },
+        "priority": {
+          "format": "uint16",
+          "maximum": 65535,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "sequence": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "within_month_order": {
+          "format": "uint16",
+          "maximum": 65535,
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "month",
+        "within_month_order",
+        "phase",
+        "priority",
+        "actor_id",
+        "sequence",
+        "kind"
+      ],
+      "type": "object"
+    },
+    "Sector": {
+      "enum": [
+        "energy",
+        "food",
+        "manufacturing",
+        "services"
+      ],
+      "type": "string"
+    },
+    "SectorParameters": {
+      "properties": {
+        "base_price_major": {
+          "items": {
+            "format": "double",
+            "type": "number"
+          },
+          "maxItems": 4,
+          "minItems": 4,
+          "type": "array"
+        },
+        "consumption_share": {
+          "items": {
+            "format": "double",
+            "type": "number"
+          },
+          "maxItems": 4,
+          "minItems": 4,
+          "type": "array"
+        },
+        "energy_intensity": {
+          "items": {
+            "format": "double",
+            "type": "number"
+          },
+          "maxItems": 4,
+          "minItems": 4,
+          "type": "array"
+        },
+        "indirect_tax_rate": {
+          "items": {
+            "format": "double",
+            "type": "number"
+          },
+          "maxItems": 4,
+          "minItems": 4,
+          "type": "array"
+        }
+      },
+      "required": [
+        "base_price_major",
+        "energy_intensity",
+        "consumption_share",
+        "indirect_tax_rate"
+      ],
+      "type": "object"
+    },
+    "SimulationEventKind": {
+      "oneOf": [
+        {
+          "properties": {
+            "type": {
+              "const": "reset_month",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "update_policy",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "restart_inactive_firms",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "match_labor",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "apply_targeted_transfers",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "apply_unemployment_benefits",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "update_firm_prices",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "capture_opening_inventory",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "produce_and_import",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "pay_wages",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "service_household_debt",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "goods_market",
+              "type": "string"
+            },
+            "week": {
+              "format": "uint8",
+              "maximum": 255,
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "type",
+            "week"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "settle_foreign_demand",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "settle_government_demand",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "service_firm_debt",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "resolve_firm_defaults",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "resolve_banks",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "update_learning",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "collect_metrics",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "close_month",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "SimulationPhase": {
+      "enum": [
+        "boundary",
+        "policy",
+        "entry",
+        "labor",
+        "fiscal",
+        "pricing",
+        "production",
+        "settlement",
+        "goods_market",
+        "external",
+        "resolution",
+        "learning",
+        "reporting"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "branch_id": {
+      "type": "string"
+    },
+    "checkpoint_version": {
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "economy": {
+      "$ref": "#/$defs/Economy"
+    },
+    "engine_version": {
+      "type": "string"
+    },
+    "journal_hash": {
+      "type": "string"
+    },
+    "metrics": {
+      "items": {
+        "$ref": "#/$defs/MetricRow"
+      },
+      "type": "array"
+    },
+    "next_month": {
+      "format": "uint32",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "replication": {
+      "format": "uint32",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "scenario_hash": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "checkpoint_version",
+    "engine_version",
+    "created_at",
+    "scenario_hash",
+    "branch_id",
+    "replication",
+    "next_month",
+    "journal_hash",
+    "economy",
+    "metrics"
+  ],
+  "title": "Checkpoint",
+  "type": "object"
+}

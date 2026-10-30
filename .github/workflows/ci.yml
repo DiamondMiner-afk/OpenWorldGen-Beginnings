@@ -1,0 +1,62 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  rust:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.95.0
+          components: rustfmt, clippy
+      - run: cargo fmt --all --check
+      - run: cargo clippy --workspace --all-targets -- -D warnings
+      - run: cargo test --workspace --all-targets
+
+  contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.95.0
+      - run: cargo build -p owg-cli
+      - run: sh scripts/generate-schemas.sh "$RUNNER_TEMP/schemas"
+      - run: diff -ru schemas "$RUNNER_TEMP/schemas"
+      - run: target/debug/owg validate --kind scenario scenarios/v0.1/inflation_lab.yaml
+      - run: target/debug/owg validate --kind data-bundle data/synthetic-balanced-v0.1/data-bundle.json
+      - run: target/debug/owg validate --kind model-pack model-packs/small-open-economy-v0.1/model-pack.json
+      - run: target/debug/owg capabilities --json
+      - run: target/debug/owg run scenarios/v0.1/inflation_lab.yaml --branch baseline --replications 1 --end-month 2 --output "$RUNNER_TEMP/smoke"
+      - run: target/debug/owg validate --kind result-bundle "$RUNNER_TEMP/smoke"
+      - run: target/debug/owg plot "$RUNNER_TEMP/smoke" --output "$RUNNER_TEMP/smoke-plots.html"
+      - run: test -s "$RUNNER_TEMP/smoke-plots.html"
+
+  supply-chain:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: EmbarkStudios/cargo-deny-action@v2
+
+  python:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: python
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: python -m unittest discover -s tests -v

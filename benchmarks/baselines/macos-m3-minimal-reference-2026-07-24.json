@@ -1,0 +1,49 @@
+{
+  "evidence_version": "owg.performance-evidence.v1",
+  "measured_at": "2026-07-24",
+  "status": "development_measurement",
+  "machine": {
+    "model": "MacBook Air",
+    "chip": "Apple M3",
+    "logical_cores": 8,
+    "memory_bytes": 17179869184,
+    "os": "macOS 26.5.2 (25F84)",
+    "architecture": "aarch64"
+  },
+  "command": "/usr/bin/time -l target/release/owg benchmark scenarios/v0.1/inflation_lab.yaml --output /tmp/owg-feature-benchmark.json",
+  "scenario_sha256": "2fdaa6f5786b39b3d6ff6f63ade1a2f4410aa943c4eb7f9c0d0e861f825bef17",
+  "engine_version": "0.1.0",
+  "build_profile": "release",
+  "compute_profile": "minimal",
+  "execution_mode": "reference",
+  "branch": "baseline",
+  "replications": 1,
+  "households": 1000,
+  "firms": 100,
+  "banks": 2,
+  "simulated_months": 120,
+  "engine_elapsed_seconds": 10.72668675,
+  "wall_elapsed_seconds": 11.69,
+  "maximum_resident_set_bytes": 9830400,
+  "journal_entries_hashed": 3824911,
+  "scheduler_version": "openworldgen.scheduler.v1",
+  "scheduled_events_hashed": 2760,
+  "metrics_sha256": "b2795130f2a7bd33369129593514d6b64e01769cb1ab2adbd5a353c52e8dcdc4",
+  "accounting_error_max": 7.00806643196447e-14,
+  "income_accounting_error_max": 1.130362454072137e-16,
+  "institutional_balance_residual_minor_units": 0,
+  "ledger_valid": true,
+  "targets": {
+    "elapsed_seconds": 120,
+    "maximum_resident_set_bytes": 1073741824
+  },
+  "targets_met": {
+    "elapsed": true,
+    "memory": true
+  },
+  "limitations": [
+    "Measured from an uncommitted development worktree.",
+    "This is one branch and one replication, not the full adaptive comparison.",
+    "Performance evidence does not establish scientific validity."
+  ]
+}

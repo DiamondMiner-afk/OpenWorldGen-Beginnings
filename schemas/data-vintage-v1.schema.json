@@ -1,0 +1,127 @@
+{
+  "$defs": {
+    "SourceSnapshot": {
+      "properties": {
+        "classifications": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {},
+          "type": "object"
+        },
+        "geography": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "licence": {
+          "type": "string"
+        },
+        "limitations": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "observation_end": {
+          "format": "date",
+          "type": "string"
+        },
+        "observation_start": {
+          "format": "date",
+          "type": "string"
+        },
+        "published_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "publisher": {
+          "type": "string"
+        },
+        "relative_path": {
+          "type": "string"
+        },
+        "release_id": {
+          "type": "string"
+        },
+        "retrieved_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "source_url": {
+          "type": "string"
+        },
+        "transformations": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "units": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        }
+      },
+      "required": [
+        "id",
+        "publisher",
+        "source_url",
+        "release_id",
+        "published_at",
+        "retrieved_at",
+        "observation_start",
+        "observation_end",
+        "relative_path",
+        "sha256",
+        "licence",
+        "geography",
+        "units"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "as_of": {
+      "description": "The latest publication time permitted in a historical run.",
+      "format": "date-time",
+      "type": "string"
+    },
+    "currency": {
+      "type": "string"
+    },
+    "geography": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string"
+    },
+    "schema_version": {
+      "type": "string"
+    },
+    "sources": {
+      "items": {
+        "$ref": "#/$defs/SourceSnapshot"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "as_of",
+    "geography",
+    "currency",
+    "sources"
+  ],
+  "title": "DataVintageManifest",
+  "type": "object"
+}

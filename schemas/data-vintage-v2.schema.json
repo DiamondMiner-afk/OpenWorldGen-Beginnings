@@ -1,0 +1,192 @@
+{
+  "$defs": {
+    "HistoricalByteAvailability": {
+      "description": "Publication timing and exact-byte timing are different claims. A later\nretrieval of a release-labelled file is not proof of its historical bytes.",
+      "oneOf": [
+        {
+          "description": "The release was known by the cutoff, but its surviving bytes are not\nindependently evidenced at that cutoff. Never admissible as input.",
+          "properties": {
+            "basis": {
+              "const": "publication_only",
+              "type": "string"
+            },
+            "explanation": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "basis",
+            "explanation"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "A separately archived copy of the exact source bytes, captured by a\nthird party no later than the historical cutoff.",
+          "properties": {
+            "archive_provider": {
+              "type": "string"
+            },
+            "archive_relative_path": {
+              "type": "string"
+            },
+            "archive_url": {
+              "type": "string"
+            },
+            "archived_sha256": {
+              "type": "string"
+            },
+            "basis": {
+              "const": "independent_capture",
+              "type": "string"
+            },
+            "capture_record_url": {
+              "description": "Human-auditable reference to the archive's original capture record.",
+              "type": "string"
+            },
+            "captured_at": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          "required": [
+            "basis",
+            "archive_provider",
+            "archive_url",
+            "captured_at",
+            "archived_sha256",
+            "archive_relative_path",
+            "capture_record_url"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "HistoricalSourceSnapshot": {
+      "properties": {
+        "byte_availability": {
+          "$ref": "#/$defs/HistoricalByteAvailability"
+        },
+        "classifications": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "default": {},
+          "type": "object"
+        },
+        "geography": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "licence": {
+          "type": "string"
+        },
+        "limitations": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "observation_end": {
+          "format": "date",
+          "type": "string"
+        },
+        "observation_start": {
+          "format": "date",
+          "type": "string"
+        },
+        "published_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "publisher": {
+          "type": "string"
+        },
+        "relative_path": {
+          "type": "string"
+        },
+        "release_id": {
+          "type": "string"
+        },
+        "retrieved_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "source_url": {
+          "type": "string"
+        },
+        "transformations": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "units": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        }
+      },
+      "required": [
+        "id",
+        "publisher",
+        "source_url",
+        "release_id",
+        "published_at",
+        "retrieved_at",
+        "observation_start",
+        "observation_end",
+        "relative_path",
+        "sha256",
+        "licence",
+        "geography",
+        "units",
+        "byte_availability"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Strict, opt-in historical input contract. V1 manifests remain valid for\nlegacy research but cannot be promoted implicitly to this contract.",
+  "properties": {
+    "as_of": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "currency": {
+      "type": "string"
+    },
+    "geography": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string"
+    },
+    "schema_version": {
+      "type": "string"
+    },
+    "sources": {
+      "items": {
+        "$ref": "#/$defs/HistoricalSourceSnapshot"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "as_of",
+    "geography",
+    "currency",
+    "sources"
+  ],
+  "title": "StrictDataVintageManifest",
+  "type": "object"
+}

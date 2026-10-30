@@ -1,0 +1,123 @@
+{
+  "schema_version": "owg.model-pack.v1",
+  "id": "owg-small-open-economy",
+  "version": "0.1.0",
+  "agent_archetypes": [
+    {
+      "id": "household",
+      "policy_id": "layered-household-v0.1",
+      "state_schema": "owg.household-state.v1",
+      "observation_schema": "owg.policy-observation.v1",
+      "action_schema": "owg.agent-action.v1"
+    },
+    {
+      "id": "firm",
+      "policy_id": "inventory-pricing-firm-v0.1",
+      "state_schema": "owg.firm-state.v1",
+      "observation_schema": "owg.policy-observation.v1",
+      "action_schema": "owg.agent-action.v1"
+    },
+    {
+      "id": "bank",
+      "policy_id": "risk-threshold-bank-v0.1",
+      "state_schema": "owg.bank-state.v1",
+      "observation_schema": "owg.policy-observation.v1",
+      "action_schema": "owg.agent-action.v1"
+    },
+    {
+      "id": "government",
+      "policy_id": "automatic-stabilizer-v0.1",
+      "state_schema": "owg.government-state.v1",
+      "observation_schema": "owg.policy-observation.v1",
+      "action_schema": "owg.agent-action.v1"
+    },
+    {
+      "id": "central-bank",
+      "policy_id": "reaction-rule-v0.1",
+      "state_schema": "owg.central-bank-state.v1",
+      "observation_schema": "owg.policy-observation.v1",
+      "action_schema": "owg.agent-action.v1"
+    }
+  ],
+  "markets": [
+    {
+      "id": "sector-goods",
+      "commodity": "four-sector-goods",
+      "clearing_rule": "bounded-search-posted-price",
+      "settlement_schedule": "weekly"
+    },
+    {
+      "id": "labor",
+      "commodity": "labor-service",
+      "clearing_rule": "vacancy-search",
+      "settlement_schedule": "monthly"
+    },
+    {
+      "id": "deposits",
+      "commodity": "bank-deposit",
+      "clearing_rule": "double-entry-transfer",
+      "settlement_schedule": "transactional"
+    },
+    {
+      "id": "credit",
+      "commodity": "working-capital-loan",
+      "clearing_rule": "collateral-and-risk-threshold",
+      "settlement_schedule": "monthly"
+    },
+    {
+      "id": "government-debt",
+      "commodity": "government-bond",
+      "clearing_rule": "central-bank-backstop-development-rule",
+      "settlement_schedule": "monthly"
+    }
+  ],
+  "accounting_rules": [
+    "Every financial transaction posts a zero-residual journal entry.",
+    "Bank loan origination creates a matched deposit liability and loan asset.",
+    "Government financing creates matched debt assets and liabilities.",
+    "Firm and household defaults reduce bank loan assets and capital through explicit write-offs.",
+    "Bank recapitalization gives government a matched bank-equity asset and never creates an unexplained residual.",
+    "Nominal GDP is checked from production, expenditure, and the declared development income decomposition.",
+    "Institutional-sector financial positions must sum to zero exactly in minor units, with no unclassified balance."
+  ],
+  "schedules": [
+    {
+      "id": "weekly-consumption",
+      "cadence": "weekly",
+      "phase_order": 40
+    },
+    {
+      "id": "monthly-payroll-tax-debt",
+      "cadence": "monthly",
+      "phase_order": 30
+    },
+    {
+      "id": "monthly-firm-plan",
+      "cadence": "monthly",
+      "phase_order": 20
+    },
+    {
+      "id": "quarterly-policy-rule",
+      "cadence": "quarterly",
+      "phase_order": 10
+    }
+  ],
+  "parameters": {
+    "baseline_policy_rate": 0.04,
+    "income_tax_rate": 0.10,
+    "monthly_unemployment_benefit": 140.0,
+    "monthly_government_procurement": 70000.0,
+    "firm_entry_monthly_probability_after_wait": 0.20,
+    "firm_entry_wait_months": 6.0,
+    "household_credit_income_multiple": 2.5,
+    "household_credit_minimum_limit": 400.0,
+    "household_debt_monthly_principal_rate": 0.02,
+    "household_credit_spread": 0.02,
+    "weekly_energy_subsistence_floor": 10.0,
+    "weekly_food_subsistence_floor": 30.0,
+    "bank_minimum_capital_ratio": 0.08,
+    "bank_minimum_liquidity_ratio": 0.10
+  },
+  "calibrated_posterior": null,
+  "validation_status": "development"
+}

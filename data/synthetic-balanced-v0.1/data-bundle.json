@@ -1,0 +1,40 @@
+{
+  "schema_version": "owg.data-bundle.v1",
+  "id": "owg-synthetic-balanced",
+  "version": "0.1.0",
+  "currency": "OWG",
+  "base_year": 2020,
+  "tables": [
+    {
+      "id": "sector_parameters",
+      "relative_path": "sector_parameters.csv",
+      "format": "csv",
+      "sha256": "cdcf3fded1e16f0a10720f3267f5166a677214f9f736aef1b3467a0ac832f948",
+      "row_count": 4,
+      "units": {
+        "sector": "owg_sector_v1",
+        "base_price_major": "OWG_per_unit",
+        "energy_intensity": "energy_input_units_per_output_unit",
+        "consumption_share": "fraction",
+        "indirect_tax_rate": "fraction"
+      },
+      "classifications": {
+        "sector": "OpenWorldGen four-sector synthetic classification v1"
+      },
+      "geography": "SYNTHETICA"
+    }
+  ],
+  "provenance": {
+    "sources": [
+      "OpenWorldGen preregistered synthetic generator"
+    ],
+    "licence": "internal-research",
+    "retrieval_date": "not-applicable",
+    "checksum_sha256": "cdcf3fded1e16f0a10720f3267f5166a677214f9f736aef1b3467a0ac832f948",
+    "confidentiality": "public-synthetic",
+    "transformations": [
+      "No source transformation; values are synthetic development assumptions."
+    ],
+    "imputations": []
+  }
+}

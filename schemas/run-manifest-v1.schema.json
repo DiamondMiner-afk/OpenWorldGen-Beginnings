@@ -1,0 +1,201 @@
+{
+  "$defs": {
+    "ComputeProfile": {
+      "enum": [
+        "minimal",
+        "standard",
+        "custom"
+      ],
+      "type": "string"
+    },
+    "ExecutionMode": {
+      "enum": [
+        "reference",
+        "fast"
+      ],
+      "type": "string"
+    },
+    "FidelityClass": {
+      "enum": [
+        "unvalidated",
+        "qualitative",
+        "policy_comparable",
+        "reference"
+      ],
+      "type": "string"
+    },
+    "SeedStreamManifest": {
+      "properties": {
+        "derivation": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "namespace",
+        "derivation"
+      ],
+      "type": "object"
+    },
+    "ValidationStatus": {
+      "enum": [
+        "development",
+        "synthetic_validated",
+        "empirically_calibrated",
+        "scenario_qualified",
+        "forecast_qualified",
+        "invalid"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "compute_profile": {
+      "$ref": "#/$defs/ComputeProfile"
+    },
+    "created_at": {
+      "format": "date-time",
+      "type": "string"
+    },
+    "data_bundle_hash": {
+      "type": "string"
+    },
+    "data_bundle_id": {
+      "type": "string"
+    },
+    "data_bundle_version": {
+      "type": "string"
+    },
+    "determinism_class": {
+      "type": "string"
+    },
+    "engine_build_hash": {
+      "type": "string"
+    },
+    "engine_version": {
+      "type": "string"
+    },
+    "execution_mode": {
+      "$ref": "#/$defs/ExecutionMode"
+    },
+    "fidelity_class": {
+      "$ref": "#/$defs/FidelityClass"
+    },
+    "invariants": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "type": "object"
+    },
+    "learned_weight_hashes": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "type": "object"
+    },
+    "manifest_version": {
+      "type": "string"
+    },
+    "model_pack_hash": {
+      "type": "string"
+    },
+    "model_pack_id": {
+      "type": "string"
+    },
+    "model_pack_version": {
+      "type": "string"
+    },
+    "output_hashes": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "type": "object"
+    },
+    "platform": {
+      "type": "string"
+    },
+    "policy_branches": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "policy_hashes": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "type": "object"
+    },
+    "random_stream_version": {
+      "type": "string"
+    },
+    "root_seed": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "run_configuration_hash": {
+      "type": "string"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "scenario_hash": {
+      "type": "string"
+    },
+    "scenario_id": {
+      "type": "string"
+    },
+    "seed_streams": {
+      "items": {
+        "$ref": "#/$defs/SeedStreamManifest"
+      },
+      "type": "array"
+    },
+    "validation_status": {
+      "$ref": "#/$defs/ValidationStatus"
+    },
+    "warnings": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "manifest_version",
+    "run_id",
+    "created_at",
+    "engine_version",
+    "engine_build_hash",
+    "scenario_id",
+    "scenario_hash",
+    "run_configuration_hash",
+    "model_pack_id",
+    "model_pack_version",
+    "model_pack_hash",
+    "data_bundle_id",
+    "data_bundle_version",
+    "data_bundle_hash",
+    "policy_branches",
+    "policy_hashes",
+    "learned_weight_hashes",
+    "root_seed",
+    "random_stream_version",
+    "seed_streams",
+    "execution_mode",
+    "compute_profile",
+    "determinism_class",
+    "fidelity_class",
+    "validation_status",
+    "platform",
+    "warnings",
+    "invariants",
+    "output_hashes"
+  ],
+  "title": "RunManifest",
+  "type": "object"
+}

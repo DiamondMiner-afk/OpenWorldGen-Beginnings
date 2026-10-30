@@ -1,0 +1,359 @@
+{
+  "$defs": {
+    "ActionBatch": {
+      "properties": {
+        "actions": {
+          "items": {
+            "$ref": "#/$defs/AgentAction"
+          },
+          "type": "array"
+        },
+        "used_fallback": {
+          "type": "boolean"
+        },
+        "warnings": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "actions",
+        "warnings",
+        "used_fallback"
+      ],
+      "type": "object"
+    },
+    "AgentAction": {
+      "oneOf": [
+        {
+          "properties": {
+            "type": {
+              "const": "no_op",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "consumption_share": {
+              "format": "double",
+              "type": "number"
+            },
+            "reservation_wage": {
+              "$ref": "#/$defs/Money"
+            },
+            "type": {
+              "const": "household_budget",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "consumption_share",
+            "reservation_wage"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "investment": {
+              "$ref": "#/$defs/Money"
+            },
+            "price_change": {
+              "format": "double",
+              "type": "number"
+            },
+            "production_change": {
+              "format": "double",
+              "type": "number"
+            },
+            "type": {
+              "const": "firm_plan",
+              "type": "string"
+            },
+            "vacancy_change": {
+              "format": "int32",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "type",
+            "price_change",
+            "production_change",
+            "vacancy_change",
+            "investment"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "approval_threshold": {
+              "format": "double",
+              "type": "number"
+            },
+            "spread_basis_points": {
+              "format": "int32",
+              "type": "integer"
+            },
+            "type": {
+              "const": "bank_credit_rule",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "spread_basis_points",
+            "approval_threshold"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "policy_rate_basis_points": {
+              "format": "int32",
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "public_spending": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Money"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "transfer": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Money"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "type": {
+              "const": "policy_proposal",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "description": "A firm proposes a cash transfer to a direct household owner. This is\nneither a dividend nor a tax determination; the dispatcher and economy\nmust still enforce actor identity, ownership, and available funds.",
+          "properties": {
+            "amount": {
+              "$ref": "#/$defs/Money"
+            },
+            "recipient_owner_id": {
+              "type": "string"
+            },
+            "type": {
+              "const": "direct_owner_cash_transfer",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type",
+            "recipient_owner_id",
+            "amount"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "Money": {
+      "description": "Fixed-point monetary amount in the scenario currency's minor unit.",
+      "format": "int64",
+      "type": "integer"
+    },
+    "Observation": {
+      "properties": {
+        "actor_id": {
+          "type": "string"
+        },
+        "debt": {
+          "$ref": "#/$defs/Money"
+        },
+        "expected_demand": {
+          "format": "double",
+          "type": "number"
+        },
+        "inflation": {
+          "format": "double",
+          "type": "number"
+        },
+        "inventory": {
+          "format": "double",
+          "type": "number"
+        },
+        "liquidity": {
+          "$ref": "#/$defs/Money"
+        },
+        "month": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "policy_rate": {
+          "format": "double",
+          "type": "number"
+        },
+        "sector": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Sector"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "unemployment": {
+          "format": "double",
+          "type": "number"
+        }
+      },
+      "required": [
+        "actor_id",
+        "month",
+        "inflation",
+        "unemployment",
+        "policy_rate",
+        "liquidity",
+        "debt",
+        "inventory",
+        "expected_demand"
+      ],
+      "type": "object"
+    },
+    "ObservationBatch": {
+      "properties": {
+        "observations": {
+          "items": {
+            "$ref": "#/$defs/Observation"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "observations"
+      ],
+      "type": "object"
+    },
+    "PolicyDescriptor": {
+      "properties": {
+        "deterministic": {
+          "type": "boolean"
+        },
+        "id": {
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/PolicyKind"
+        },
+        "maximum_latency_ms": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "requires_network": {
+          "type": "boolean"
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "version",
+        "sha256",
+        "kind",
+        "deterministic",
+        "requires_network",
+        "maximum_latency_ms"
+      ],
+      "type": "object"
+    },
+    "PolicyKind": {
+      "enum": [
+        "rule",
+        "utility",
+        "reinforcement_learning",
+        "large_language_model",
+        "human"
+      ],
+      "type": "string"
+    },
+    "Sector": {
+      "enum": [
+        "energy",
+        "food",
+        "manufacturing",
+        "services"
+      ],
+      "type": "string"
+    },
+    "TransitionBatch": {
+      "properties": {
+        "rewards": {
+          "items": {
+            "format": "double",
+            "type": "number"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "rewards"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Serializable boundary shared by rule, utility, RL, LLM, and human adapters.",
+  "properties": {
+    "actions": {
+      "$ref": "#/$defs/ActionBatch"
+    },
+    "descriptor": {
+      "$ref": "#/$defs/PolicyDescriptor"
+    },
+    "learning_update": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/TransitionBatch"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "observations": {
+      "$ref": "#/$defs/ObservationBatch"
+    }
+  },
+  "required": [
+    "descriptor",
+    "observations",
+    "actions"
+  ],
+  "title": "PolicyContract",
+  "type": "object"
+}

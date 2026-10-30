@@ -1,0 +1,28 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "openworldgen"
+version = "0.1.0"
+description = "Python 3.13 research SDK for the OpenWorldGen scenario laboratory"
+readme = "README.md"
+requires-python = ">=3.13,<3.14"
+license = "GPL-3.0-only"
+license-files = ["LICENSE"]
+authors = [{ name = "OpenWorldGen contributors" }]
+dependencies = []
+
+[project.optional-dependencies]
+analysis = [
+  "pyarrow>=20,<21",
+  "pandas>=2.3,<3",
+]
+test = []
+
+[tool.hatch.build.targets.wheel]
+packages = ["openworldgen"]
+
+[tool.pyright]
+pythonVersion = "3.13"
+typeCheckingMode = "strict"

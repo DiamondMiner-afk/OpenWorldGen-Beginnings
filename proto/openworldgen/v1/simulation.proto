@@ -1,0 +1,130 @@
+syntax = "proto3";
+
+package openworldgen.v1;
+
+// Process-neutral control contract for local, server, Minecraft-sidecar, and
+// cluster adapters. Scenario and manifest payloads remain governed by the
+// versioned JSON Schemas in /schemas.
+service SimulationService {
+  rpc Capabilities(CapabilitiesRequest) returns (CapabilitiesResponse);
+  rpc Validate(ValidateRequest) returns (ValidateResponse);
+  rpc Run(RunRequest) returns (stream RunEvent);
+  rpc Resume(ResumeRequest) returns (stream RunEvent);
+  rpc Cancel(CancelRequest) returns (CancelResponse);
+}
+
+message CapabilitiesRequest {}
+
+message CapabilitiesResponse {
+  string api_version = 1;
+  string engine_version = 2;
+  repeated string execution_modes = 3;
+  repeated string compute_profiles = 4;
+  repeated string policy_kinds = 5;
+  bool gpu_required = 6;
+  repeated string result_formats = 7;
+  string random_stream_version = 8;
+}
+
+message Artifact {
+  string logical_path = 1;
+  string sha256 = 2;
+  oneof location {
+    bytes inline_bytes = 3;
+    string uri = 4;
+  }
+}
+
+message InputBundle {
+  bytes model_pack_json = 1;
+  bytes data_bundle_json = 2;
+  repeated Artifact artifacts = 3;
+}
+
+message ValidateRequest {
+  bytes scenario_json = 1;
+  InputBundle inputs = 2;
+}
+
+message ValidationIssue {
+  string severity = 1;
+  string path = 2;
+  string code = 3;
+  string message = 4;
+}
+
+message ValidateResponse {
+  bool valid = 1;
+  string scenario_id = 2;
+  string scenario_sha256 = 3;
+  repeated ValidationIssue issues = 4;
+}
+
+message ReplicationPlan {
+  uint32 minimum = 1;
+  uint32 maximum = 2;
+  double confidence_level = 3;
+  double relative_half_width_target = 4;
+  optional uint32 fixed_replications = 5;
+}
+
+message RunRequest {
+  bytes scenario_json = 1;
+  repeated string branch_ids = 2;
+  ReplicationPlan replications = 3;
+  optional uint32 end_month = 4;
+  string requested_execution_mode = 5;
+  InputBundle inputs = 6;
+}
+
+message ResumeRequest {
+  bytes scenario_json = 1;
+  bytes checkpoint_json = 2;
+  optional uint32 end_month = 3;
+  InputBundle inputs = 4;
+}
+
+message RunProgress {
+  string run_id = 1;
+  string phase = 2;
+  uint32 completed_jobs = 3;
+  uint32 total_jobs = 4;
+  uint32 completed_months = 5;
+}
+
+message MetricBatch {
+  // Apache Arrow IPC stream fragment.
+  bytes arrow_ipc = 1;
+  uint64 row_count = 2;
+}
+
+message RunCompleted {
+  bytes run_manifest_json = 1;
+  bytes comparison_json = 2;
+  bytes event_audit_json = 3;
+  string result_bundle_uri = 4;
+  bytes result_bundle_index_json = 5;
+}
+
+message RunFailure {
+  string code = 1;
+  string message = 2;
+  bytes limited_manifest_json = 3;
+}
+
+message RunEvent {
+  oneof payload {
+    RunProgress progress = 1;
+    MetricBatch metrics = 2;
+    RunCompleted completed = 3;
+    RunFailure failure = 4;
+  }
+}
+
+message CancelRequest {
+  string run_id = 1;
+}
+
+message CancelResponse {
+  bool accepted = 1;
+}

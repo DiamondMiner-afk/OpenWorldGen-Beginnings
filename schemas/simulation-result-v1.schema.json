@@ -1,0 +1,1138 @@
+{
+  "$defs": {
+    "AccountingDiagnostic": {
+      "properties": {
+        "branch_id": {
+          "type": "string"
+        },
+        "max_income_identity_relative_error": {
+          "format": "double",
+          "type": "number"
+        },
+        "max_institutional_balance_residual_minor_units": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "max_national_accounts_relative_error": {
+          "format": "double",
+          "type": "number"
+        },
+        "max_unclassified_balance_minor_units": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "observation_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "branch_id",
+        "observation_count",
+        "max_national_accounts_relative_error",
+        "max_income_identity_relative_error",
+        "max_institutional_balance_residual_minor_units",
+        "max_unclassified_balance_minor_units"
+      ],
+      "type": "object"
+    },
+    "ComparisonReport": {
+      "properties": {
+        "caveat": {
+          "type": "string"
+        },
+        "confidence_level": {
+          "format": "double",
+          "type": "number"
+        },
+        "evaluation_end_month": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "evaluation_start_month": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "minimax_regret_branch": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "pareto_frontier": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "scenario_id": {
+          "type": "string"
+        },
+        "scores": {
+          "items": {
+            "$ref": "#/$defs/PolicyScore"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "scenario_id",
+        "evaluation_start_month",
+        "evaluation_end_month",
+        "confidence_level",
+        "scores",
+        "pareto_frontier",
+        "caveat"
+      ],
+      "type": "object"
+    },
+    "ComputeProfile": {
+      "enum": [
+        "minimal",
+        "standard",
+        "custom"
+      ],
+      "type": "string"
+    },
+    "ConfidenceInterval": {
+      "properties": {
+        "lower": {
+          "format": "double",
+          "type": "number"
+        },
+        "mean": {
+          "format": "double",
+          "type": "number"
+        },
+        "replication_count": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "upper": {
+          "format": "double",
+          "type": "number"
+        }
+      },
+      "required": [
+        "mean",
+        "lower",
+        "upper",
+        "replication_count"
+      ],
+      "type": "object"
+    },
+    "ContractCreditMetrics": {
+      "properties": {
+        "active_contracts": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "audit": {
+          "$ref": "#/$defs/CreditAudit"
+        },
+        "interest_receivable": {
+          "$ref": "#/$defs/Money"
+        },
+        "principal": {
+          "$ref": "#/$defs/Money"
+        }
+      },
+      "required": [
+        "principal",
+        "interest_receivable",
+        "active_contracts",
+        "audit"
+      ],
+      "type": "object"
+    },
+    "CreditAudit": {
+      "properties": {
+        "accrued_interest": {
+          "$ref": "#/$defs/Money"
+        },
+        "bank_originated_principal": {
+          "$ref": "#/$defs/Money"
+        },
+        "customer_funded_principal": {
+          "$ref": "#/$defs/Money"
+        },
+        "event_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "last_event": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CreditEvent"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "paid_interest": {
+          "$ref": "#/$defs/Money"
+        },
+        "paid_principal": {
+          "$ref": "#/$defs/Money"
+        },
+        "rejected_contracts": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "rolling_hash": {
+          "items": {
+            "format": "uint8",
+            "maximum": 255,
+            "minimum": 0,
+            "type": "integer"
+          },
+          "maxItems": 32,
+          "minItems": 32,
+          "type": "array"
+        },
+        "written_off": {
+          "$ref": "#/$defs/Money"
+        }
+      },
+      "required": [
+        "event_count",
+        "rolling_hash",
+        "bank_originated_principal",
+        "customer_funded_principal",
+        "accrued_interest",
+        "paid_interest",
+        "paid_principal",
+        "written_off",
+        "rejected_contracts"
+      ],
+      "type": "object"
+    },
+    "CreditEvent": {
+      "properties": {
+        "borrower_id": {
+          "type": "string"
+        },
+        "contract_id": {
+          "type": "string"
+        },
+        "interest": {
+          "$ref": "#/$defs/Money"
+        },
+        "kind": {
+          "$ref": "#/$defs/CreditEventKind"
+        },
+        "lender_id": {
+          "type": "string"
+        },
+        "month": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "principal": {
+          "$ref": "#/$defs/Money"
+        }
+      },
+      "required": [
+        "contract_id",
+        "lender_id",
+        "borrower_id",
+        "month",
+        "kind",
+        "principal",
+        "interest"
+      ],
+      "type": "object"
+    },
+    "CreditEventKind": {
+      "enum": [
+        "bank_origination",
+        "customer_origination",
+        "rejected_funding",
+        "rejected_law",
+        "interest_accrued",
+        "payment",
+        "write_off"
+      ],
+      "type": "string"
+    },
+    "EventAudit": {
+      "properties": {
+        "contract_credit_audit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CreditAudit"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "entries_by_month": {
+          "additionalProperties": false,
+          "patternProperties": {
+            "^\\d+$": {
+              "format": "uint64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        },
+        "entries_by_phase": {
+          "additionalProperties": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "object"
+        },
+        "entry_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "first_entry_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "first_scheduled_event_id": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "governance_events": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/GovernanceEvent"
+          },
+          "type": "array"
+        },
+        "journal_hash": {
+          "type": "string"
+        },
+        "last_entry_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "last_scheduled_event_id": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "posting_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "schedule_hash": {
+          "default": "",
+          "type": "string"
+        },
+        "scheduled_event_count": {
+          "default": 0,
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "scheduled_events_by_kind": {
+          "additionalProperties": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "default": {},
+          "type": "object"
+        },
+        "scheduled_events_by_month": {
+          "additionalProperties": false,
+          "default": {},
+          "patternProperties": {
+            "^\\d+$": {
+              "format": "uint64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          "type": "object"
+        },
+        "scheduler_version": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "required": [
+        "journal_hash",
+        "entry_count",
+        "posting_count",
+        "entries_by_phase",
+        "entries_by_month"
+      ],
+      "type": "object"
+    },
+    "ExecutionMode": {
+      "enum": [
+        "reference",
+        "fast"
+      ],
+      "type": "string"
+    },
+    "FidelityClass": {
+      "enum": [
+        "unvalidated",
+        "qualitative",
+        "policy_comparable",
+        "reference"
+      ],
+      "type": "string"
+    },
+    "GovernanceEvent": {
+      "properties": {
+        "actor_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "authority_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "domain": {
+          "description": "V3 decision provenance. These fields identify declared scenario actors,\nnot authenticated real-world officials or external model callers.",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "effective_month": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "month": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "outcome": {
+          "type": "string"
+        },
+        "phase": {
+          "type": "string"
+        },
+        "proposal_id": {
+          "type": "string"
+        },
+        "required": {
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "support": {
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "month",
+        "proposal_id",
+        "phase",
+        "outcome"
+      ],
+      "type": "object"
+    },
+    "IncomeAccounts": {
+      "properties": {
+        "compensation_of_employees": {
+          "format": "double",
+          "type": "number"
+        },
+        "gross_operating_surplus": {
+          "format": "double",
+          "type": "number"
+        },
+        "gross_value_added": {
+          "format": "double",
+          "type": "number"
+        },
+        "identity_relative_error": {
+          "format": "double",
+          "type": "number"
+        },
+        "nominal_gdp_income": {
+          "format": "double",
+          "type": "number"
+        },
+        "taxes_on_products": {
+          "format": "double",
+          "type": "number"
+        }
+      },
+      "required": [
+        "gross_value_added",
+        "compensation_of_employees",
+        "gross_operating_surplus",
+        "taxes_on_products",
+        "nominal_gdp_income",
+        "identity_relative_error"
+      ],
+      "type": "object"
+    },
+    "InstitutionalBalances": {
+      "properties": {
+        "banks": {
+          "$ref": "#/$defs/Money"
+        },
+        "central_bank": {
+          "$ref": "#/$defs/Money"
+        },
+        "firms": {
+          "$ref": "#/$defs/Money"
+        },
+        "government": {
+          "$ref": "#/$defs/Money"
+        },
+        "households": {
+          "$ref": "#/$defs/Money"
+        },
+        "ownership_sector": {
+          "$ref": "#/$defs/Money"
+        },
+        "residual": {
+          "$ref": "#/$defs/Money"
+        },
+        "rest_of_world": {
+          "$ref": "#/$defs/Money"
+        },
+        "unclassified": {
+          "$ref": "#/$defs/Money"
+        }
+      },
+      "required": [
+        "households",
+        "firms",
+        "banks",
+        "government",
+        "central_bank",
+        "rest_of_world",
+        "ownership_sector",
+        "unclassified",
+        "residual"
+      ],
+      "type": "object"
+    },
+    "MechanismDecomposition": {
+      "properties": {
+        "branch_id": {
+          "type": "string"
+        },
+        "cpi_sector_change_at_peak": {
+          "items": {
+            "format": "double",
+            "type": "number"
+          },
+          "maxItems": 4,
+          "minItems": 4,
+          "type": "array"
+        },
+        "cumulative_bank_resolutions_per_replication": {
+          "format": "double",
+          "type": "number"
+        },
+        "cumulative_firm_defaults_per_replication": {
+          "format": "double",
+          "type": "number"
+        },
+        "cumulative_fiscal_deficit_per_replication": {
+          "format": "double",
+          "type": "number"
+        },
+        "cumulative_household_defaults_per_replication": {
+          "format": "double",
+          "type": "number"
+        },
+        "mean_output_gap": {
+          "format": "double",
+          "type": "number"
+        },
+        "mean_unemployment": {
+          "format": "double",
+          "type": "number"
+        },
+        "peak_credit_mean": {
+          "format": "double",
+          "type": "number"
+        },
+        "peak_inflation_mean": {
+          "format": "double",
+          "type": "number"
+        },
+        "peak_inflation_month": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "branch_id",
+        "peak_inflation_month",
+        "peak_inflation_mean",
+        "cpi_sector_change_at_peak",
+        "mean_output_gap",
+        "mean_unemployment",
+        "cumulative_firm_defaults_per_replication",
+        "cumulative_household_defaults_per_replication",
+        "cumulative_bank_resolutions_per_replication",
+        "peak_credit_mean",
+        "cumulative_fiscal_deficit_per_replication"
+      ],
+      "type": "object"
+    },
+    "MetricRow": {
+      "properties": {
+        "accounting_identity_relative_error": {
+          "format": "double",
+          "type": "number"
+        },
+        "active_firms": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "average_wage": {
+          "format": "double",
+          "type": "number"
+        },
+        "bank_resolutions": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "branch_id": {
+          "type": "string"
+        },
+        "consumption_deciles": {
+          "items": {
+            "format": "double",
+            "type": "number"
+          },
+          "maxItems": 10,
+          "minItems": 10,
+          "type": "array"
+        },
+        "consumption_total": {
+          "format": "double",
+          "type": "number"
+        },
+        "contract_credit": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ContractCreditMetrics"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "cpi": {
+          "format": "double",
+          "type": "number"
+        },
+        "cpi_energy": {
+          "format": "double",
+          "type": "number"
+        },
+        "cpi_food": {
+          "format": "double",
+          "type": "number"
+        },
+        "cpi_manufacturing": {
+          "format": "double",
+          "type": "number"
+        },
+        "cpi_services": {
+          "format": "double",
+          "type": "number"
+        },
+        "credit": {
+          "format": "double",
+          "type": "number"
+        },
+        "firm_defaults": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "firm_entries": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "fiscal_balance": {
+          "format": "double",
+          "type": "number"
+        },
+        "gini": {
+          "format": "double",
+          "type": "number"
+        },
+        "government_debt": {
+          "format": "double",
+          "type": "number"
+        },
+        "household_defaults": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "imports": {
+          "format": "double",
+          "type": "number"
+        },
+        "income_accounts": {
+          "$ref": "#/$defs/IncomeAccounts",
+          "default": {
+            "compensation_of_employees": 0.0,
+            "gross_operating_surplus": 0.0,
+            "gross_value_added": 0.0,
+            "identity_relative_error": 0.0,
+            "nominal_gdp_income": 0.0,
+            "taxes_on_products": 0.0
+          }
+        },
+        "inflation_year_over_year": {
+          "format": "double",
+          "type": "number"
+        },
+        "institutional_balances": {
+          "$ref": "#/$defs/InstitutionalBalances",
+          "default": {
+            "banks": 0,
+            "central_bank": 0,
+            "firms": 0,
+            "government": 0,
+            "households": 0,
+            "ownership_sector": 0,
+            "residual": 0,
+            "rest_of_world": 0,
+            "unclassified": 0
+          }
+        },
+        "inventories": {
+          "format": "double",
+          "type": "number"
+        },
+        "ledger_residual_minor_units": {
+          "format": "int64",
+          "type": "integer"
+        },
+        "month": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "month_of_year": {
+          "format": "uint8",
+          "maximum": 255,
+          "minimum": 0,
+          "type": "integer"
+        },
+        "nominal_gdp": {
+          "format": "double",
+          "type": "number"
+        },
+        "output_gap": {
+          "format": "double",
+          "type": "number"
+        },
+        "policy_rate": {
+          "format": "double",
+          "type": "number"
+        },
+        "poverty_share": {
+          "format": "double",
+          "type": "number"
+        },
+        "real_gdp": {
+          "format": "double",
+          "type": "number"
+        },
+        "replication": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "scenario_id": {
+          "type": "string"
+        },
+        "unemployment": {
+          "format": "double",
+          "type": "number"
+        },
+        "year": {
+          "format": "int32",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "scenario_id",
+        "branch_id",
+        "replication",
+        "month",
+        "year",
+        "month_of_year",
+        "cpi",
+        "cpi_energy",
+        "cpi_food",
+        "cpi_manufacturing",
+        "cpi_services",
+        "inflation_year_over_year",
+        "real_gdp",
+        "nominal_gdp",
+        "output_gap",
+        "unemployment",
+        "average_wage",
+        "consumption_total",
+        "consumption_deciles",
+        "gini",
+        "poverty_share",
+        "inventories",
+        "firm_defaults",
+        "firm_entries",
+        "household_defaults",
+        "bank_resolutions",
+        "active_firms",
+        "credit",
+        "fiscal_balance",
+        "government_debt",
+        "imports",
+        "policy_rate",
+        "ledger_residual_minor_units",
+        "accounting_identity_relative_error"
+      ],
+      "type": "object"
+    },
+    "Money": {
+      "description": "Fixed-point monetary amount in the scenario currency's minor unit.",
+      "format": "int64",
+      "type": "integer"
+    },
+    "PolicyScore": {
+      "properties": {
+        "branch_id": {
+          "type": "string"
+        },
+        "default_loss": {
+          "format": "double",
+          "type": "number"
+        },
+        "distribution_loss": {
+          "format": "double",
+          "type": "number"
+        },
+        "fiscal_cost": {
+          "format": "double",
+          "type": "number"
+        },
+        "inflation_loss": {
+          "format": "double",
+          "type": "number"
+        },
+        "maximum_regret": {
+          "format": "double",
+          "type": "number"
+        },
+        "normalized_regrets": {
+          "additionalProperties": {
+            "format": "double",
+            "type": "number"
+          },
+          "type": "object"
+        },
+        "objective_intervals": {
+          "additionalProperties": {
+            "$ref": "#/$defs/ConfidenceInterval"
+          },
+          "type": "object"
+        },
+        "output_loss": {
+          "format": "double",
+          "type": "number"
+        },
+        "pareto_efficient": {
+          "type": "boolean"
+        },
+        "unemployment_loss": {
+          "format": "double",
+          "type": "number"
+        }
+      },
+      "required": [
+        "branch_id",
+        "inflation_loss",
+        "output_loss",
+        "unemployment_loss",
+        "distribution_loss",
+        "default_loss",
+        "fiscal_cost",
+        "objective_intervals",
+        "normalized_regrets",
+        "maximum_regret",
+        "pareto_efficient"
+      ],
+      "type": "object"
+    },
+    "RunManifest": {
+      "properties": {
+        "compute_profile": {
+          "$ref": "#/$defs/ComputeProfile"
+        },
+        "created_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "data_bundle_hash": {
+          "type": "string"
+        },
+        "data_bundle_id": {
+          "type": "string"
+        },
+        "data_bundle_version": {
+          "type": "string"
+        },
+        "determinism_class": {
+          "type": "string"
+        },
+        "engine_build_hash": {
+          "type": "string"
+        },
+        "engine_version": {
+          "type": "string"
+        },
+        "execution_mode": {
+          "$ref": "#/$defs/ExecutionMode"
+        },
+        "fidelity_class": {
+          "$ref": "#/$defs/FidelityClass"
+        },
+        "invariants": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "learned_weight_hashes": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "manifest_version": {
+          "type": "string"
+        },
+        "model_pack_hash": {
+          "type": "string"
+        },
+        "model_pack_id": {
+          "type": "string"
+        },
+        "model_pack_version": {
+          "type": "string"
+        },
+        "output_hashes": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "platform": {
+          "type": "string"
+        },
+        "policy_branches": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "policy_hashes": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "random_stream_version": {
+          "type": "string"
+        },
+        "root_seed": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "run_configuration_hash": {
+          "type": "string"
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "scenario_hash": {
+          "type": "string"
+        },
+        "scenario_id": {
+          "type": "string"
+        },
+        "seed_streams": {
+          "items": {
+            "$ref": "#/$defs/SeedStreamManifest"
+          },
+          "type": "array"
+        },
+        "validation_status": {
+          "$ref": "#/$defs/ValidationStatus"
+        },
+        "warnings": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "manifest_version",
+        "run_id",
+        "created_at",
+        "engine_version",
+        "engine_build_hash",
+        "scenario_id",
+        "scenario_hash",
+        "run_configuration_hash",
+        "model_pack_id",
+        "model_pack_version",
+        "model_pack_hash",
+        "data_bundle_id",
+        "data_bundle_version",
+        "data_bundle_hash",
+        "policy_branches",
+        "policy_hashes",
+        "learned_weight_hashes",
+        "root_seed",
+        "random_stream_version",
+        "seed_streams",
+        "execution_mode",
+        "compute_profile",
+        "determinism_class",
+        "fidelity_class",
+        "validation_status",
+        "platform",
+        "warnings",
+        "invariants",
+        "output_hashes"
+      ],
+      "type": "object"
+    },
+    "SeedStreamManifest": {
+      "properties": {
+        "derivation": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "namespace",
+        "derivation"
+      ],
+      "type": "object"
+    },
+    "ValidationStatus": {
+      "enum": [
+        "development",
+        "synthetic_validated",
+        "empirically_calibrated",
+        "scenario_qualified",
+        "forecast_qualified",
+        "invalid"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "accounting": {
+      "items": {
+        "$ref": "#/$defs/AccountingDiagnostic"
+      },
+      "type": "array"
+    },
+    "comparison": {
+      "$ref": "#/$defs/ComparisonReport"
+    },
+    "event_audit": {
+      "additionalProperties": {
+        "$ref": "#/$defs/EventAudit"
+      },
+      "type": "object"
+    },
+    "journal_hashes": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "type": "object"
+    },
+    "manifest": {
+      "$ref": "#/$defs/RunManifest"
+    },
+    "mechanisms": {
+      "items": {
+        "$ref": "#/$defs/MechanismDecomposition"
+      },
+      "type": "array"
+    },
+    "metrics": {
+      "items": {
+        "$ref": "#/$defs/MetricRow"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "manifest",
+    "metrics",
+    "comparison",
+    "mechanisms",
+    "accounting",
+    "journal_hashes",
+    "event_audit"
+  ],
+  "title": "SimulationResult",
+  "type": "object"
+}

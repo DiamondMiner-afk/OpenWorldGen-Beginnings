@@ -1,0 +1,35 @@
+.DS_Store
+.idea/
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# The deprecated prototype is an independent, dirty nested repository with
+# generated model artefacts. Preserve it in place; never absorb it into this
+# production monorepo.
+Old - Depreceated/
+
+target/
+dist/
+build/
+site/
+outputs/
+local-models/
+# Local experiments and downloaded research assets are not the alpha source.
+runs/
+research/**/data/raw/
+research/**/data/processed/
+research/**/artifacts/
+research/us-economy-2007-2023/data/raw/matraix-persona-1m/
+benchmarks/results/
+*.profraw
+*.log
+
+# Keep local credentials and model binaries out of source uploads.
+.env
+.env.*
+!.env.example
+*.gguf
+*.safetensors

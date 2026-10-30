@@ -1,0 +1,144 @@
+{
+  "$defs": {
+    "DataProvenance": {
+      "properties": {
+        "checksum_sha256": {
+          "type": "string"
+        },
+        "confidentiality": {
+          "type": "string"
+        },
+        "imputations": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "licence": {
+          "type": "string"
+        },
+        "retrieval_date": {
+          "type": "string"
+        },
+        "sources": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "transformations": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "sources",
+        "licence",
+        "retrieval_date",
+        "checksum_sha256",
+        "confidentiality",
+        "transformations",
+        "imputations"
+      ],
+      "type": "object"
+    },
+    "DataTable": {
+      "properties": {
+        "classifications": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "format": {
+          "$ref": "#/$defs/TableFormat"
+        },
+        "geography": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "relative_path": {
+          "type": "string"
+        },
+        "row_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "units": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        }
+      },
+      "required": [
+        "id",
+        "relative_path",
+        "format",
+        "sha256",
+        "units",
+        "classifications",
+        "geography"
+      ],
+      "type": "object"
+    },
+    "TableFormat": {
+      "enum": [
+        "csv",
+        "parquet",
+        "arrow_ipc"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "base_year": {
+      "format": "int32",
+      "type": "integer"
+    },
+    "currency": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string"
+    },
+    "provenance": {
+      "$ref": "#/$defs/DataProvenance"
+    },
+    "schema_version": {
+      "type": "string"
+    },
+    "tables": {
+      "items": {
+        "$ref": "#/$defs/DataTable"
+      },
+      "type": "array"
+    },
+    "version": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "id",
+    "version",
+    "currency",
+    "base_year",
+    "tables",
+    "provenance"
+  ],
+  "title": "DataBundle",
+  "type": "object"
+}
