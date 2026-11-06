@@ -4,6 +4,9 @@ mod scenario_io;
 
 use anyhow::{Context, Result, bail};
 use clap::{Parser, Subcommand, ValueEnum};
+use owg_core::historical_finance::FinanceOpeningSpec;
+use owg_core::historical_labor::HistoricalLaborSpec;
+use owg_core::historical_production::ProductionOpeningSpec;
 use owg_core::vintage::read_confined_vintage_file;
 use owg_core::{
     Checkpoint, DataBundle, DataVintageManifest, DecisionTape, EngineCapabilities,
@@ -14,7 +17,7 @@ use scenario_io::{load_scenario, save_scenario};
 use serde::Serialize;
 use sha2::{Digest, Sha256};
 use std::fs::{self, File};
-use std::io::BufWriter;
+use std::io::{self, BufRead, BufWriter, Write};
 use std::path::{Path, PathBuf};
 use std::time::Instant;
 
@@ -115,6 +118,23 @@ enum Command {
         end_month: Option<u32>,
         #[arg(long)]
         output: PathBuf,
+    },
+    /// Emit one NDJSON frame per completed month for the live research console.
+    RunLive {
+        scenario: PathBuf,
+        #[arg(long, default_value = "baseline")]
+        branch: String,
+        #[arg(long, default_value_t = 0)]
+        replication: u32,
+        #[arg(long)]
+        labor: Option<PathBuf>,
+        #[arg(long)]
+        finance: Option<PathBuf>,
+        #[arg(long)]
+        production: Option<PathBuf>,
+        /// Read one "step" line from stdin before advancing each month.
+        #[arg(long)]
+        step_input: bool,
     },
     /// Run all branches with common random numbers and compare them.
     Compare {
@@ -245,6 +265,23 @@ fn main() -> Result<()> {
             print_run_summary(&output, &result);
             Ok(())
         }),
+        Command::RunLive {
+            scenario,
+            branch,
+            replication,
+            labor,
+            finance,
+            production,
+            step_input,
+        } => run_live(
+            &scenario,
+            &branch,
+            replication,
+            labor.as_deref(),
+            finance.as_deref(),
+            production.as_deref(),
+            step_input,
+        ),
         Command::Compare {
             scenario,
             replications,
@@ -780,4 +817,84 @@ fn with_failure_bundle(
             Err(error)
         }
     }
+}
+
+fn run_live(
+    scenario_path: &Path,
+    branch: &str,
+    replication: u32,
+    labor_path: Option<&Path>,
+    finance_path: Option<&Path>,
+    production_path: Option<&Path>,
+    step_input: bool,
+) -> Result<()> {
+    let scenario = load_scenario(scenario_path)?;
+    let scenario_sha256 = scenario.hash()?;
+    let horizon = scenario.calendar.months;
+    let labor_bytes = labor_path.map(fs::read).transpose()?;
+    let labor = labor_bytes
+        .as_deref()
+        .map(serde_json::from_slice::<HistoricalLaborSpec>)
+        .transpose()?;
+    let source_manifest_sha256 = labor
+        .as_ref()
+        .map(|input| input.source_manifest_sha256.clone());
+    let labor_sha256 = labor_bytes
+        .as_ref()
+        .map(|bytes| format!("{:x}", Sha256::digest(bytes)));
+    let engine = SimulationEngine::new(scenario)?;
+    let finance_bytes = finance_path.map(fs::read).transpose()?;
+    let finance = finance_bytes
+        .as_deref()
+        .map(serde_json::from_slice::<FinanceOpeningSpec>)
+        .transpose()?;
+    let finance_sha256 = finance_bytes
+        .as_ref()
+        .map(|bytes| format!("{:x}", Sha256::digest(bytes)));
+    let production_bytes = production_path.map(fs::read).transpose()?;
+    let production = production_bytes
+        .as_deref()
+        .map(serde_json::from_slice::<ProductionOpeningSpec>)
+        .transpose()?;
+    let production_sha256 = production_bytes
+        .as_ref()
+        .map(|bytes| format!("{:x}", Sha256::digest(bytes)));
+    let mut run = engine.live_run(branch, replication, labor, finance, production)?;
+    let mut stdout = io::stdout().lock();
+    writeln!(
+        stdout,
+        "{}",
+        serde_json::json!({
+            "type": "start",
+            "schema_version": "owg.live.v1",
+            "scenario_sha256": scenario_sha256,
+            "source_manifest_sha256": source_manifest_sha256,
+            "labor_sha256": labor_sha256,
+            "finance_sha256": finance_sha256,
+            "opening_finance": run.opening_finance(),
+            "production_sha256": production_sha256,
+            "opening_production": run.opening_production(),
+            "opening_household_demand": run.opening_household_demand(),
+            "branch": branch,
+            "replication": replication,
+            "months": horizon
+        })
+    )?;
+    stdout.flush()?;
+    let mut requests = io::stdin().lock().lines();
+    for _ in 0..horizon {
+        if step_input {
+            let Some(line) = requests.next().transpose()? else {
+                return Ok(());
+            };
+            if line != "step" {
+                bail!("expected step request");
+            }
+        }
+        let frame = run.step()?;
+        serde_json::to_writer(&mut stdout, &frame)?;
+        writeln!(stdout)?;
+        stdout.flush()?;
+    }
+    Ok(())
 }

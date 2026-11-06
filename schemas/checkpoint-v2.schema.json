@@ -32,7 +32,9 @@
         "treasury",
         "tax_receivable",
         "equity",
-        "opening_residual"
+        "opening_residual",
+        "opening_other_asset",
+        "opening_other_liability"
       ],
       "type": "string"
     },

@@ -9,6 +9,9 @@ mkdir -p "$destination"
 if ! cmp -s schemas/result-bundle-v1.schema.json "$destination/result-bundle-v1.schema.json"; then
   cp schemas/result-bundle-v1.schema.json "$destination/result-bundle-v1.schema.json"
 fi
+if ! cmp -s schemas/checkpoint-v1.schema.json "$destination/checkpoint-v1.schema.json"; then
+  cp schemas/checkpoint-v1.schema.json "$destination/checkpoint-v1.schema.json"
+fi
 
 target/debug/owg schema --kind capabilities --output "$destination/capabilities-v1.schema.json"
 target/debug/owg schema --kind scenario --output "$destination/scenario-spec-v1.schema.json"

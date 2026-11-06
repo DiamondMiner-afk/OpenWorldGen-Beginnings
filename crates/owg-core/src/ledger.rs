@@ -26,6 +26,8 @@ pub enum AccountKind {
     TaxReceivable,
     Equity,
     OpeningResidual,
+    OpeningOtherAsset,
+    OpeningOtherLiability,
 }
 
 #[derive(
@@ -69,6 +71,8 @@ fn serde_name(kind: AccountKind) -> &'static str {
         AccountKind::TaxReceivable => "tax_receivable",
         AccountKind::Equity => "equity",
         AccountKind::OpeningResidual => "opening_residual",
+        AccountKind::OpeningOtherAsset => "opening_other_asset",
+        AccountKind::OpeningOtherLiability => "opening_other_liability",
     }
 }
 

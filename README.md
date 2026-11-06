@@ -150,6 +150,18 @@ Model weights are not distributed here. Check the model's own licence,
 compatibility, and memory requirements. No trained RL policy or representative
 runtime MatrAIx population is delivered in this alpha.
 
+## Live U.S. economy lab
+
+The dashboard advances the Rust economy one month per step. It shows output,
+prices, labor, banking, credit, fiscal flows, and trade. Runs can go past the
+historical comparison series, with 2028 as the default end year. A COVID
+replay and hypothetical AI adoption change selected agent inputs. The
+historical labor fit uses CPS and JOLTS releases. Dated BEA and BLS releases
+constrain the sector mix and household basket, and dated financial sources
+constrain selected bank openings. Behavior and physical production technology
+still use development assumptions. The engine has yet to beat persistence. See the
+[local lab runbook](research/us-economy-2007-2023/notes/US_ECONOMY_LIVE_LAB.md).
+
 ## Historical US predictions versus observations
 
 Research code lives in `research/us-economy-2007-2023/code/`. The separate

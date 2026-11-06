@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>OpenWorldGen · U.S. Economy Lab</title>
+  <link rel="stylesheet" href="/app.css">
+  <script src="/economy.js" defer></script>
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="mark" aria-hidden="true">◈</span> OPENWORLDGEN <span class="divider">/</span> <span>RESEARCH CONSOLE</span></div>
+    <span class="badge"><span class="dot"></span> DEVELOPMENT SIMULATION</span>
+  </header>
+  <main>
+    <section class="heading">
+      <div class="heading-copy">
+        <div class="label accent">UNITED STATES · AGENT-BASED SIMULATION</div>
+        <h1>U.S. Economy Lab</h1>
+        <p>Track production, prices, work, and bank balances as agents move the economy one month at a time.</p>
+      </div>
+      <div class="settings">
+        <label for="origin">Starting year<select id="origin"></select></label>
+        <label for="end-year">End year<input id="end-year" type="number" min="2016" max="2100" value="2028"></label>
+        <label for="preset">Scenario<select id="preset"></select></label>
+        <label for="finance">Bank opening<select id="finance">
+          <option value="historical">Dated bank ratios</option><option value="synthetic">Synthetic</option>
+        </select></label>
+        <label for="production">Sector opening<select id="production">
+          <option value="historical">Dated sector mix</option><option value="inventory">Dated mix + inventory trial</option><option value="synthetic">Synthetic</option>
+        </select></label>
+        <label for="seed">Seed<select id="seed"></select></label>
+        <button id="reset" class="secondary" type="button">New run</button>
+      </div>
+    </section>
+
+    <section class="transport" aria-label="Simulation controls">
+      <div class="transport-start">
+        <button id="play" class="primary" type="button">▶ Play</button>
+        <button id="step" class="secondary" type="button">Step +1 month</button>
+        <label class="speed" for="speed">Speed<select id="speed"><option value="1100">1×</option><option value="550">2×</option><option value="250">4×</option></select></label>
+      </div>
+      <div class="scrubber">
+        <label class="sr-only" for="cursor">Inspect a completed month</label>
+        <input id="cursor" type="range" min="0" max="0" value="0" disabled>
+        <div class="progress-caption"><span id="period">Starting engine…</span><span id="progress">—</span></div>
+      </div>
+      <p id="status" role="status" aria-live="polite">Loading the research run.</p>
+    </section>
+
+    <div id="scenario-note" class="scenario-note"></div>
+    <nav class="view-nav" aria-label="Simulation views">
+      <button id="economy-tab" type="button" aria-pressed="true" aria-controls="economy-view">Economy overview</button>
+      <button id="labor-tab" type="button" aria-pressed="false" aria-controls="labor-view">Labor & validation</button>
+    </nav>
+
+    <section id="economy-view" aria-labelledby="economy-tab">
+      <section class="cards macro-cards" aria-label="Current economy">
+        <article><h2>Real output</h2><div id="gdp" class="metric accent">—</div><p>Monthly real GDP · OWG</p></article>
+        <article><h2>Consumer inflation</h2><div id="inflation" class="metric accent">—</div><p id="price-note">Requires 12 months of price history</p></article>
+        <article><h2>Unemployment</h2><div id="macro-unemployment" class="metric accent">—</div><p id="macro-unemployment-note">Share of the simulated labor force</p></article>
+        <article><h2>Active firms</h2><div id="active-firms" class="metric accent">—</div><p id="firm-note">Simulated firms in operation</p></article>
+      </section>
+      <div class="macro-grid">
+        <section class="panel macro-panel">
+          <h2>Real GDP growth</h2><p>Quarter over quarter, annualized · first simulated growth after two quarters</p>
+          <div class="legend"><span class="accent">━ Simulated</span><span class="observed">━ Observed US</span></div>
+          <svg id="gdp-chart" viewBox="0 0 650 215" role="img" aria-label="Annualized quarterly real GDP growth"></svg>
+        </section>
+        <section class="panel macro-panel">
+          <h2>Consumer prices</h2><p>12-month CPI change · observed from the Philadelphia Fed archive</p>
+          <div class="legend"><span class="accent">━ Simulated</span><span class="observed">━ Observed US</span></div>
+          <svg id="cpi-chart" viewBox="0 0 650 215" role="img" aria-label="Year over year consumer price inflation"></svg>
+        </section>
+        <section class="panel macro-panel">
+          <div class="panel-head"><div><h2>Credit and reserves</h2><p id="credit-note">Simulated month-end balances · OWG</p></div>
+          <label class="comparison">View <select id="credit-view"><option value="ratio">Loans / deposits</option><option value="levels">Model balances</option></select></label></div>
+          <div id="credit-legend" class="legend"></div>
+          <svg id="credit-chart" viewBox="0 0 650 215" role="img" aria-label="Private credit and commercial bank reserves"></svg>
+        </section>
+        <section class="panel macro-panel">
+          <h2>Government and trade</h2><p>Simulated monthly flows · OWG</p>
+          <div class="legend"><span class="accent">━ Fiscal balance</span><span class="baseline">┄ Imports</span></div>
+          <svg id="public-chart" viewBox="0 0 650 215" role="img" aria-label="Fiscal balance and imports by month"></svg>
+        </section>
+      </div>
+      <div class="details">
+        <section class="panel">
+          <h2>Firms and households</h2><p>Simulated employment and sales by sector</p>
+          <div class="table-wrap"><table class="matrix economy-table">
+            <thead><tr><th scope="col">Sector</th><th scope="col">Firms</th><th scope="col">Workers</th><th scope="col">Sales</th><th scope="col">Household purchases</th></tr></thead>
+            <tbody id="macro-sectors"></tbody>
+          </table></div>
+          <dl id="household-summary"></dl>
+        </section>
+        <section class="panel">
+          <h2>Bank balance sheets</h2><p id="bank-source">Selected balances at month close · OWG</p>
+          <div class="table-wrap"><table class="matrix economy-table">
+            <thead><tr><th scope="col">Bank</th><th scope="col">Deposits</th><th scope="col">Reserves</th><th scope="col">Loans</th><th scope="col">Equity</th></tr></thead>
+            <tbody id="bank-balances"></tbody>
+          </table></div>
+          <dl id="public-summary"></dl>
+        </section>
+      </div>
+      <section class="panel composition">
+        <div class="panel-head"><div><h2>Sector composition</h2><p id="composition-note"></p></div>
+          <label class="comparison">View <select id="composition-view">
+            <option value="payroll">Payroll share</option><option value="spending">Household purchases</option>
+          </select></label>
+        </div>
+        <div class="legend"><span class="accent">━ Simulated</span><span class="observed">━ Observed</span><span class="baseline">┄ Opening share</span></div>
+        <div id="composition"></div>
+      </section>
+      <section class="panel composition">
+        <div class="panel-head"><div><h2>Production accounts</h2><p id="output-note"></p></div>
+          <label class="comparison">View <select id="output-view">
+            <option value="output">Output and inputs</option><option value="food">Food inventories</option>
+            <option value="manufacturing">Manufacturing inventories</option>
+          </select></label>
+        </div>
+        <div class="legend" id="output-legend"></div>
+        <svg id="output-chart" class="output-chart" viewBox="0 0 650 215" role="img" aria-label="Production accounts and inventories"></svg>
+        <p id="output-current"></p>
+      </section>
+      <p class="scope economy-scope">Dated U.S. data constrain labor, the sector mix, the household basket, and selected bank openings. Borrower links, loan terms, physical production technology, and fiscal behavior use development assumptions. Observed series are comparison data. Monetary levels are in model units (OWG).</p>
+    </section>
+
+    <section id="labor-view" aria-labelledby="labor-tab" hidden>
+    <section class="cards" aria-label="Current month indicators">
+      <article><h2>Simulated unemployment</h2><div id="unemployment" class="metric accent">—</div><p id="participation">Share of the simulated labor force</p></article>
+      <article><h2>Observed U.S. unemployment</h2><div id="actual" class="metric observed">—</div><p id="gap">BLS Current Population Survey</p></article>
+      <article><h2>Job matches</h2><div id="matches" class="metric baseline">—</div><p id="hiring">Simulated applications and vacancies</p></article>
+    </section>
+
+    <div class="overview">
+      <section class="panel history" aria-labelledby="history-title">
+        <div class="panel-head">
+          <div><h2 id="history-title">Unemployment over time</h2><p>Percent of the labor force</p></div>
+          <label for="baseline" class="comparison">Compare <select id="baseline">
+            <option value="persistence">Opening rate</option>
+            <option value="ar1">AR(1)</option>
+            <option value="flows_only">Flows-only model</option>
+          </select></label>
+        </div>
+        <div class="legend"><span class="accent">━ Simulated</span><span class="observed">━ Observed</span><span id="baseline-legend" class="baseline">┄ Opening rate</span></div>
+        <svg id="history-chart" viewBox="0 0 780 284" role="img" aria-label="Simulated and observed unemployment by month"></svg>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head"><div><h2>Where workers went</h2><p>Simulated people by monthly transition</p></div></div>
+        <table class="matrix">
+          <thead><tr><th scope="col">From → to</th><th scope="col">Employed</th><th scope="col">Jobless</th><th scope="col">Outside</th></tr></thead>
+          <tbody id="matrix"><tr><th scope="row">Employed</th><td>—</td><td>—</td><td>—</td></tr><tr><th scope="row">Jobless</th><td>—</td><td>—</td><td>—</td></tr><tr><th scope="row">Outside</th><td>—</td><td>—</td><td>—</td></tr></tbody>
+        </table>
+        <div class="labor-totals" id="labor-totals">Advance one month to see changes.</div>
+        <p id="posting-stock" class="labor-totals"></p>
+      </section>
+    </div>
+
+    <section class="panel evidence" aria-labelledby="evidence-title">
+      <div class="panel-head"><div><h2 id="evidence-title">Forecast check</h2><p>Mean absolute unemployment error across six origins using synthetic bank openings</p></div><span class="badge">EXPLORATORY</span></div>
+      <div id="evidence" class="evidence-grid"><p>Loading backtest results…</p></div>
+      <div id="finance-evidence" class="finance-evidence" hidden></div>
+      <div id="production-evidence" class="finance-evidence" hidden></div>
+      <div id="inventory-evidence" class="finance-evidence" hidden></div>
+    </section>
+
+    <div class="details">
+      <section class="panel">
+        <div class="panel-head"><div><h2>Employment by sector</h2><p>Workers on simulated firms’ payrolls</p></div></div>
+        <div id="sectors" class="sectors">Advance one month to inspect firms.</div>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><div><h2>Run information</h2><p>Inputs and checks for the selected run</p></div></div>
+        <dl id="audit"><dt>Labor archive</dt><dd>Loading…</dd></dl>
+        <p class="scope">Historical data constrain labor, sector openings, and selected bank openings. Individual financial relationships and production technology use development assumptions. Observed outcomes enter the dashboard for comparison after each simulated month.</p>
+      </section>
+    </div>
+    </section>
+  </main>
+</body>
+</html>

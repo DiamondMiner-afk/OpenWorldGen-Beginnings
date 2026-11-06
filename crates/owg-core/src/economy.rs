@@ -2,6 +2,9 @@ use crate::contracts::{PolicyActionKind, PolicyBranch, ScenarioSpec, Sector, Sho
 use crate::data::SectorParameters;
 use crate::error::{OwgError, OwgResult};
 use crate::governance::GovernanceState;
+use crate::historical_households::HouseholdDemand;
+use crate::historical_labor::HistoricalLabor;
+use crate::historical_production::InventoryPolicy;
 use crate::institutions::{EconomicRole, InstitutionGraph, OwnershipStake};
 use crate::ledger::{AccountKey, AccountKind, JournalEntry, Ledger, Posting};
 use crate::metrics::{IncomeAccounts, InstitutionalBalances, MetricRow, gini, weighted_deciles};
@@ -14,10 +17,10 @@ use serde::{Deserialize, Serialize};
 use std::array;
 use std::collections::BTreeSet;
 
-const GOVERNMENT_ID: &str = "GOVERNMENT";
-const CENTRAL_BANK_ID: &str = "CENTRAL_BANK";
-const REST_OF_WORLD_ID: &str = "REST_OF_WORLD";
-const OWNERSHIP_SECTOR_ID: &str = "OWNERSHIP_SECTOR";
+pub(crate) const GOVERNMENT_ID: &str = "GOVERNMENT";
+pub(crate) const CENTRAL_BANK_ID: &str = "CENTRAL_BANK";
+pub(crate) const REST_OF_WORLD_ID: &str = "REST_OF_WORLD";
+pub(crate) const OWNERSHIP_SECTOR_ID: &str = "OWNERSHIP_SECTOR";
 
 #[derive(Clone, Debug, Deserialize, JsonSchema, Serialize)]
 pub struct Households {
@@ -232,15 +235,20 @@ struct MonthFlows {
     inventory_losses_value: f64,
     production_nominal: f64,
     production_real: f64,
+    real_import_inputs: f64,
+    unused_service_slots_real: f64,
     consumption_producer: f64,
     consumption_tax: f64,
     consumption_total: f64,
+    consumption_by_sector: [f64; 4],
     government_purchases: f64,
     exports: f64,
     imports: f64,
     wages: f64,
     income_tax: f64,
     transfers: f64,
+    social_benefits: f64,
+    household_purchase_intent: f64,
     new_credit: f64,
     principal_repaid: f64,
     interest_paid: f64,
@@ -251,6 +259,21 @@ struct MonthFlows {
     bank_resolution_cost: f64,
     sector_sales_value: [f64; 4],
     sector_sales_units: [f64; 4],
+}
+
+#[derive(Debug, Serialize)]
+pub struct ProductionFlows {
+    pub gross_output_fixed_prices: f64,
+    pub imported_inputs_fixed_prices: f64,
+    pub value_added_fixed_prices: f64,
+    pub unused_service_slots_fixed_prices: f64,
+    pub inventory_opening_nominal: f64,
+    pub inventory_closing_nominal: f64,
+    pub government_purchases: f64,
+    pub exports: f64,
+    pub social_benefits: f64,
+    pub household_purchase_intent: f64,
+    pub household_disposable_income: f64,
 }
 
 #[derive(Clone, Debug, Deserialize, JsonSchema, Serialize)]
@@ -1130,6 +1153,16 @@ impl Economy {
         scenario: &ScenarioSpec,
         branch: &PolicyBranch,
     ) -> OwgResult<MetricRow> {
+        self.step_month_with_labor(scenario, branch, None)
+            .map(|(metrics, _, _)| metrics)
+    }
+
+    pub(crate) fn step_month_with_labor(
+        &mut self,
+        scenario: &ScenarioSpec,
+        branch: &PolicyBranch,
+        mut historical_labor: Option<&mut HistoricalLabor>,
+    ) -> OwgResult<(MetricRow, [f64; 4], ProductionFlows)> {
         self.assert_population_structure()?;
         self.assert_deposit_claims_balanced()?;
         self.assert_loan_claims_balanced()?;
@@ -1168,6 +1201,7 @@ impl Economy {
                 &effects,
                 &mut flows,
                 &mut metric,
+                historical_labor.as_deref_mut(),
             )?;
             self.schedule_audit.record(&event)?;
         }
@@ -1196,7 +1230,20 @@ impl Economy {
         self.assert_deposit_claims_balanced()?;
         self.assert_loan_claims_balanced()?;
         self.validate_credit_context(scenario, true)?;
-        Ok(metric)
+        let production = ProductionFlows {
+            gross_output_fixed_prices: flows.production_real,
+            imported_inputs_fixed_prices: flows.real_import_inputs,
+            value_added_fixed_prices: flows.production_real - flows.real_import_inputs,
+            unused_service_slots_fixed_prices: flows.unused_service_slots_real,
+            inventory_opening_nominal: flows.opening_inventory_value,
+            inventory_closing_nominal: self.inventory_value(),
+            government_purchases: flows.government_purchases,
+            exports: flows.exports,
+            social_benefits: flows.social_benefits,
+            household_purchase_intent: flows.household_purchase_intent,
+            household_disposable_income: self.households.monthly_income.iter().sum(),
+        };
+        Ok((metric, flows.consumption_by_sector, production))
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -1209,6 +1256,7 @@ impl Economy {
         effects: &MonthEffects,
         flows: &mut MonthFlows,
         metric: &mut Option<MetricRow>,
+        historical_labor: Option<&mut HistoricalLabor>,
     ) -> OwgResult<()> {
         match event.kind {
             SimulationEventKind::OriginateContractCredit => {
@@ -1227,28 +1275,56 @@ impl Economy {
             }
             SimulationEventKind::UpdatePolicy => self.update_policy(event.month, effects),
             SimulationEventKind::RestartInactiveFirms => {
-                self.restart_inactive_firms(event.month, seeds, flows)?;
+                self.restart_inactive_firms(
+                    event.month,
+                    seeds,
+                    flows,
+                    historical_labor
+                        .as_ref()
+                        .is_some_and(|labor| labor.calibrated_production()),
+                )?;
             }
-            SimulationEventKind::MatchLabor => self.update_labor_market(event.month, seeds),
+            SimulationEventKind::MatchLabor => {
+                self.update_labor_market(event.month, seeds, effects, historical_labor);
+            }
             SimulationEventKind::ApplyTargetedTransfers => {
                 self.apply_targeted_transfers(effects, flows)?;
             }
             SimulationEventKind::ApplyUnemploymentBenefits => {
-                self.apply_unemployment_benefits(flows)?;
+                self.apply_unemployment_benefits(flows, historical_labor.as_deref())?;
+                if let Some(labor) = historical_labor.as_deref() {
+                    self.pay_historical_social_benefit(labor, flows)?;
+                }
             }
             SimulationEventKind::UpdateFirmPrices => self.update_firm_prices(effects)?,
             SimulationEventKind::CaptureOpeningInventory => {
                 flows.opening_inventory_value = self.inventory_value();
             }
             SimulationEventKind::ProduceAndImport => {
-                self.produce_and_import(effects, flows)?;
+                self.produce_and_import(
+                    effects,
+                    flows,
+                    historical_labor
+                        .as_ref()
+                        .and_then(|labor| labor.inventory()),
+                )?;
             }
             SimulationEventKind::PayWages => self.pay_wages(flows)?,
             SimulationEventKind::ServiceHouseholdDebt => {
                 self.service_household_debt(flows)?;
             }
             SimulationEventKind::GoodsMarket { week } => {
-                self.household_consumption(event.month, week, seeds, effects, flows)?;
+                self.household_consumption(
+                    event.month,
+                    week,
+                    seeds,
+                    effects,
+                    flows,
+                    historical_labor
+                        .as_ref()
+                        .and_then(|labor| labor.household_demand.as_ref())
+                        .map(|demand| (demand, scenario.calendar.weeks_per_month)),
+                )?;
             }
             SimulationEventKind::SettleForeignDemand => {
                 self.foreign_demand(event.month, seeds, flows)?;
@@ -1257,9 +1333,25 @@ impl Economy {
                 self.government_demand(effects, flows)?;
             }
             SimulationEventKind::ServiceFirmDebt => self.service_firm_debt(flows)?,
-            SimulationEventKind::ResolveFirmDefaults => self.resolve_defaults(flows)?,
+            SimulationEventKind::ResolveFirmDefaults => {
+                if historical_labor
+                    .as_ref()
+                    .and_then(|labor| labor.inventory())
+                    .is_some()
+                {
+                    self.expire_service_slots(flows);
+                }
+                self.resolve_defaults(flows)?;
+            }
             SimulationEventKind::ResolveBanks => self.resolve_banks(flows)?,
-            SimulationEventKind::UpdateLearning => self.update_learning(event.month, seeds),
+            SimulationEventKind::UpdateLearning => {
+                if let Some(demand) =
+                    historical_labor.and_then(|labor| labor.household_demand.as_mut())
+                {
+                    demand.update(&self.households.monthly_income);
+                }
+                self.update_learning(event.month, seeds);
+            }
             SimulationEventKind::CollectMetrics => {
                 if metric.is_some() {
                     return Err(OwgError::InvalidState(format!(
@@ -1267,7 +1359,13 @@ impl Economy {
                         event.month
                     )));
                 }
-                *metric = Some(self.collect_metrics(scenario, branch, effects, flows)?);
+                *metric = Some(self.collect_metrics(
+                    scenario,
+                    branch,
+                    effects,
+                    flows,
+                    historical_labor.as_deref(),
+                )?);
             }
             SimulationEventKind::CloseMonth => {
                 if metric.is_none() {
@@ -1293,7 +1391,13 @@ impl Economy {
         self.credit_spread_shock = effects.credit_spread_delta;
     }
 
-    fn update_labor_market(&mut self, month: u32, seeds: SeedBook) {
+    fn update_labor_market(
+        &mut self,
+        month: u32,
+        seeds: SeedBook,
+        effects: &MonthEffects,
+        historical_labor: Option<&mut HistoricalLabor>,
+    ) {
         let mut employee_counts = vec![0_usize; self.firms.len()];
         for index in self.households.employer.iter().flatten() {
             if self.firms.active[*index] {
@@ -1309,13 +1413,29 @@ impl Economy {
             let inventory_pressure =
                 self.firms.inventory[index] / self.firms.expected_demand[index].max(1.0);
             let rate_drag = (self.effective_policy_rate - 0.03).max(0.0) * 2.0;
-            let variable_workers = self.firms.expected_demand[index]
+            let mut variable_workers = self.firms.expected_demand[index]
                 * (1.0 - rate_drag)
                 * if inventory_pressure > 2.0 { 0.8 } else { 1.0 }
                 / self.firms.productivity[index];
+            if historical_labor.is_some() {
+                let sector = self.firms.sector[index].index();
+                variable_workers *= effects.supply_capacity[sector] / effects.productivity[sector];
+            }
             // A fixed operating team models coordination, sales, and administration.
             // It also prevents implausibly frictionless mass layoffs after one weak month.
-            *desired_workers = (3 + variable_workers.ceil() as usize).clamp(3, 28);
+            *desired_workers = if historical_labor
+                .as_ref()
+                .is_some_and(|labor| labor.calibrated_production())
+            {
+                (variable_workers.ceil() as usize).clamp(1, 28)
+            } else {
+                (3 + variable_workers.ceil() as usize).clamp(3, 28)
+            };
+        }
+
+        if let Some(labor) = historical_labor {
+            labor.match_workers(self, &desired, employee_counts, month, seeds);
+            return;
         }
 
         for household_index in 0..self.households.len() {
@@ -1388,6 +1508,7 @@ impl Economy {
         &mut self,
         effects: &MonthEffects,
         flows: &mut MonthFlows,
+        inventory: Option<&InventoryPolicy>,
     ) -> OwgResult<()> {
         let employee_counts = self.employee_counts();
         for (index, worker_count) in employee_counts.iter().copied().enumerate() {
@@ -1400,10 +1521,18 @@ impl Economy {
                 workers * self.firms.productivity[index] * effects.productivity[sector.index()];
             let physical_capacity =
                 self.firms.capacity[index] * effects.supply_capacity[sector.index()];
-            let target_inventory = 0.35 * self.firms.expected_demand[index];
-            let replenishment_plan = (self.firms.expected_demand[index] + target_inventory
-                - self.firms.inventory[index])
-                .max(0.10 * self.firms.expected_demand[index]);
+            let demand = self.firms.expected_demand[index];
+            let replenishment_plan = if let Some(rule) =
+                inventory.and_then(|policy| policy.rule(sector))
+            {
+                (demand
+                    + rule.adjustment * (rule.target_months * demand - self.firms.inventory[index]))
+                    .max(0.0)
+            } else if inventory.is_some() && sector == Sector::Services {
+                demand
+            } else {
+                (demand + 0.35 * demand - self.firms.inventory[index]).max(0.10 * demand)
+            };
             let prospective_output = labor_capacity
                 .min(physical_capacity)
                 .min(replenishment_plan);
@@ -1441,6 +1570,8 @@ impl Economy {
                     "intermediate imported energy",
                 )?;
                 flows.imports += paid.as_major_f64();
+                flows.real_import_inputs +=
+                    paid.as_major_f64() / effects.import_price[Sector::Energy.index()];
             }
             self.firms.inventory[index] += output;
             let producer_value = output * self.firms.price[index].as_major_f64();
@@ -1448,6 +1579,18 @@ impl Economy {
             flows.production_real += output * self.base_sector_prices[sector.index()];
         }
         Ok(())
+    }
+
+    fn expire_service_slots(&mut self, flows: &mut MonthFlows) {
+        for (firm, &sector) in self.firms.sector.iter().enumerate() {
+            if sector == Sector::Services {
+                let slots = std::mem::take(&mut self.firms.inventory[firm]);
+                let real = slots * self.base_sector_prices[sector.index()];
+                flows.production_nominal -= slots * self.firms.price[firm].as_major_f64();
+                flows.production_real -= real;
+                flows.unused_service_slots_real += real;
+            }
+        }
     }
 
     fn pay_wages(&mut self, flows: &mut MonthFlows) -> OwgResult<()> {
@@ -1531,6 +1674,7 @@ impl Economy {
         seeds: SeedBook,
         effects: &MonthEffects,
         flows: &mut MonthFlows,
+        historical_demand: Option<(&HouseholdDemand, u8)>,
     ) -> OwgResult<()> {
         let mut sector_candidates: [Vec<usize>; 4] = std::array::from_fn(|_| Vec::new());
         for firm_index in 0..self.firms.len() {
@@ -1559,19 +1703,23 @@ impl Economy {
                     40.0
                 };
             let monthly_budget = desired_budget.min(liquidity_budget.max(0.0));
-            let weekly_budget = monthly_budget / 4.0;
+            let weekly_budget =
+                historical_demand.map_or(monthly_budget / 4.0, |(demand, weeks)| {
+                    demand.budget(household_index, income) * confidence / f64::from(weeks)
+                });
+            flows.household_purchase_intent += weekly_budget;
 
             for sector in Sector::ALL {
                 let discretionary_budget =
                     weekly_budget * self.parameters.sector.consumption_share[sector.index()];
                 let budget = match sector {
-                    Sector::Energy => {
+                    Sector::Energy if historical_demand.is_none() => {
                         discretionary_budget.max(self.parameters.weekly_energy_subsistence_floor)
                     }
-                    Sector::Food => {
+                    Sector::Food if historical_demand.is_none() => {
                         discretionary_budget.max(self.parameters.weekly_food_subsistence_floor)
                     }
-                    Sector::Manufacturing | Sector::Services => discretionary_budget,
+                    _ => discretionary_budget,
                 };
                 if budget <= 0.01 {
                     continue;
@@ -1657,6 +1805,7 @@ impl Economy {
                 flows.consumption_producer += producer_amount.as_major_f64();
                 flows.consumption_tax += tax_amount.as_major_f64();
                 flows.consumption_total += gross.as_major_f64();
+                flows.consumption_by_sector[sector.index()] += gross.as_major_f64();
                 flows.sector_sales_value[sector.index()] += producer_amount.as_major_f64();
                 flows.sector_sales_units[sector.index()] += units;
             }
@@ -1782,14 +1931,21 @@ impl Economy {
         Ok(())
     }
 
-    fn apply_unemployment_benefits(&mut self, flows: &mut MonthFlows) -> OwgResult<()> {
+    fn apply_unemployment_benefits(
+        &mut self,
+        flows: &mut MonthFlows,
+        historical_labor: Option<&HistoricalLabor>,
+    ) -> OwgResult<()> {
         let benefit = self.parameters.monthly_unemployment_benefit;
         let recipients: Vec<usize> = self
             .households
             .employer
             .iter()
             .enumerate()
-            .filter_map(|(index, employer)| employer.is_none().then_some(index))
+            .filter_map(|(index, employer)| {
+                (employer.is_none() && historical_labor.is_none_or(|labor| !labor.outside(index)))
+                    .then_some(index)
+            })
             .collect();
         let total = benefit.checked_mul(recipients.len() as i64)?;
         self.ensure_government_liquidity(total)?;
@@ -1802,6 +1958,36 @@ impl Economy {
             )?;
             self.households.monthly_income[household_index] += benefit.as_major_f64();
             flows.transfers += benefit.as_major_f64();
+        }
+        Ok(())
+    }
+
+    fn pay_historical_social_benefit(
+        &mut self,
+        labor: &HistoricalLabor,
+        flows: &mut MonthFlows,
+    ) -> OwgResult<()> {
+        let Some(demand) = &labor.household_demand else {
+            return Ok(());
+        };
+        let benefit = demand.social_benefit(self.cpi_history.last().copied().unwrap_or(100.0))?;
+        if benefit == Money::ZERO {
+            return Ok(());
+        }
+        let recipients: Vec<_> = (0..self.households.len())
+            .filter(|&index| labor.outside(index))
+            .collect();
+        self.ensure_government_liquidity(benefit.checked_mul(recipients.len() as i64)?)?;
+        for index in recipients {
+            self.transfer_treasury_to_deposit(
+                self.households.ids[index].clone(),
+                self.households.bank_index[index],
+                benefit,
+                "historical social benefit proxy",
+            )?;
+            self.households.monthly_income[index] += benefit.as_major_f64();
+            flows.transfers += benefit.as_major_f64();
+            flows.social_benefits += benefit.as_major_f64();
         }
         Ok(())
     }
@@ -2272,6 +2458,7 @@ impl Economy {
         month: u32,
         seeds: SeedBook,
         flows: &mut MonthFlows,
+        calibrated_production: bool,
     ) -> OwgResult<()> {
         for firm_index in 0..self.firms.len() {
             if self.firms.active[firm_index]
@@ -2286,24 +2473,26 @@ impl Economy {
             self.firms.default_streak[firm_index] = 0;
             self.firms.inactive_months[firm_index] = 0;
             self.firms.inventory[firm_index] = 0.0;
-            self.firms.expected_demand[firm_index] =
-                seeds.range("entrant-demand", firm_index as u64, month, 0, 240.0, 340.0);
-            self.firms.productivity[firm_index] = seeds.range(
-                "entrant-productivity",
-                firm_index as u64,
-                month,
-                0,
-                38.0,
-                52.0,
-            );
-            self.firms.capacity[firm_index] = seeds.range(
-                "entrant-capacity",
-                firm_index as u64,
-                month,
-                0,
-                420.0,
-                650.0,
-            );
+            if !calibrated_production {
+                self.firms.expected_demand[firm_index] =
+                    seeds.range("entrant-demand", firm_index as u64, month, 0, 240.0, 340.0);
+                self.firms.productivity[firm_index] = seeds.range(
+                    "entrant-productivity",
+                    firm_index as u64,
+                    month,
+                    0,
+                    38.0,
+                    52.0,
+                );
+                self.firms.capacity[firm_index] = seeds.range(
+                    "entrant-capacity",
+                    firm_index as u64,
+                    month,
+                    0,
+                    420.0,
+                    650.0,
+                );
+            }
             self.firms.markup[firm_index] =
                 seeds.range("entrant-markup", firm_index as u64, month, 0, 0.16, 0.28);
             let sector_index = self.firms.sector[firm_index].index();
@@ -2358,6 +2547,7 @@ impl Economy {
         branch: &PolicyBranch,
         effects: &MonthEffects,
         flows: &MonthFlows,
+        historical_labor: Option<&HistoricalLabor>,
     ) -> OwgResult<MetricRow> {
         let sector_prices = self.average_sector_prices();
         let producer_price_index: [f64; 4] = array::from_fn(|index| {
@@ -2414,8 +2604,15 @@ impl Economy {
         };
         let institutional_balances = self.institutional_balances()?;
         let identity_error = resource_error.max(expenditure_error).max(income_error);
-        let real_gdp = flows.production_real
-            - flows.imports * 100.0 / producer_price_index[Sector::Energy.index()].max(1e-9);
+        let real_gdp = if historical_labor
+            .and_then(HistoricalLabor::inventory)
+            .is_some()
+        {
+            flows.production_real - flows.real_import_inputs
+        } else {
+            flows.production_real
+                - flows.imports * 100.0 / producer_price_index[Sector::Energy.index()].max(1e-9)
+        };
         let first_shock_month = scenario
             .shocks
             .iter()
@@ -2440,8 +2637,17 @@ impl Economy {
             .map(|(_, weight)| weight)
             .sum();
         let total_weight: f64 = self.households.weights.iter().sum();
-        let unemployment = if total_weight > 0.0 {
-            1.0 - employed_weight / total_weight
+        let labor_force_weight = historical_labor.map_or(total_weight, |labor| {
+            self.households
+                .weights
+                .iter()
+                .enumerate()
+                .filter(|(index, _)| !labor.outside(*index))
+                .map(|(_, weight)| weight)
+                .sum()
+        });
+        let unemployment = if labor_force_weight > 0.0 {
+            1.0 - employed_weight / labor_force_weight
         } else {
             0.0
         };
@@ -2832,7 +3038,7 @@ impl Economy {
     }
 
     #[must_use]
-    fn average_sector_prices(&self) -> [f64; 4] {
+    pub(crate) fn average_sector_prices(&self) -> [f64; 4] {
         let mut sums = [0.0; 4];
         let mut counts = [0_u32; 4];
         for index in 0..self.firms.len() {

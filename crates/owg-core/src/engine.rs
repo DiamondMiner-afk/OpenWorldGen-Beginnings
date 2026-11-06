@@ -5,7 +5,11 @@ use crate::data::DataBundle;
 use crate::economy::{EconomicParameters, Economy};
 use crate::error::{OwgError, OwgResult};
 use crate::governance::{GovernanceEvent, GovernanceState};
+use crate::historical_finance::FinanceOpeningSpec;
+use crate::historical_labor::HistoricalLaborSpec;
+use crate::historical_production::ProductionOpeningSpec;
 use crate::institutions::InstitutionGraph;
+use crate::live::LiveRun;
 use crate::manifest::{FidelityClass, RunManifest, ValidationStatus};
 use crate::metrics::MetricRow;
 use crate::model::ModelPack;
@@ -334,6 +338,24 @@ impl SimulationEngine {
     #[must_use]
     pub fn data_bundle(&self) -> &DataBundle {
         &self.data_bundle
+    }
+
+    pub fn live_run(
+        &self,
+        branch_id: &str,
+        replication: u32,
+        labor: Option<HistoricalLaborSpec>,
+        finance: Option<FinanceOpeningSpec>,
+        production: Option<ProductionOpeningSpec>,
+    ) -> OwgResult<LiveRun<'_>> {
+        let branch = self
+            .scenario
+            .policy_branches
+            .iter()
+            .find(|branch| branch.id == branch_id)
+            .ok_or_else(|| OwgError::InvalidState(format!("unknown policy branch: {branch_id}")))?;
+        let economy = Economy::new_with_parameters(&self.scenario, replication, &self.parameters)?;
+        LiveRun::new(&self.scenario, branch, economy, labor, finance, production)
     }
 
     /// Replay exactly one frozen firm decision at each pre-month boundary.
